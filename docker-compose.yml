@@ -1,0 +1,79 @@
+name: fb-clone
+
+services:
+    users:
+        build:
+            context: ./users
+            dockerfile: Dockerfile
+        restart: always
+        env_file:
+            - ./users/.env
+        ports:
+            - 8010:8000
+        volumes:
+            - ./users:/app
+        depends_on:
+            - users-db
+            - rabbitmq
+        networks:
+            - public-network
+            - users-network
+
+    posts:
+        build:
+            context: ./posts
+            dockerfile: Dockerfile
+        restart: always
+        env_file:
+            - ./posts/.env
+        ports:
+            - 8020:8000
+        volumes:
+            - ./posts:/app
+        depends_on:
+            - posts-db
+            - rabbitmq
+        networks:
+            - public-network
+            - posts-network
+
+    users-db:
+        image: mysql:8.4.0
+        restart: always
+        env_file:
+            - ./users/.env
+        volumes:
+            - users-db:/var/lib/mysql
+        networks:
+            - users-network
+
+    posts-db:
+        image: mysql:8.4.0
+        restart: always
+        env_file:
+            - ./posts/.env
+        volumes:
+            - posts-db:/var/lib/mysql
+        networks:
+            - posts-network
+
+    rabbitmq:
+        restart: always
+        image: rabbitmq:3-management
+        ports:
+            - 5672:5672
+            - 15672:15672
+        env_file:
+            - ./.env
+        networks:
+            - public-network
+
+volumes:
+    users-db:
+    posts-db:
+    minio-storage:
+
+networks:
+    public-network:
+    users-network:
+    posts-network:
