@@ -3,6 +3,9 @@
 echo "Waiting for MySQL Posts Database to start..."
 ./wait-for-it.sh posts-db:3306 --strict
 
+echo "Waiting for Redis server to start..."
+./wait-for-it.sh posts-cache:6379 --strict
+
 echo "Waiting for RabbitMQ to start..."
 ./wait-for-it.sh rabbitmq:5672 --strict
 

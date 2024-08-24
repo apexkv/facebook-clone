@@ -14,6 +14,7 @@ django-templated-mail==1.1.1
 djangorestframework==3.15.1
 djangorestframework-simplejwt==5.3.1
 djoser==2.2.2
+django-redis==5.4.0
 drf-yasg==1.21.7
 idna==3.7
 inflection==0.5.1
@@ -30,6 +31,7 @@ python-dotenv==1.0.1
 python3-openid==3.2.0
 pytz==2024.1
 PyYAML==6.0.1
+redis==5.0.1
 requests==2.32.2
 requests-oauthlib==2.0.0
 s3transfer==0.10.2

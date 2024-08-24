@@ -149,6 +149,17 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 10,
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://posts-cache:6379/1",
+        "TIMEOUT": 5 * 60,  # cache timeout is 5min
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
+}
+
 
 STATIC_URL = f"/static/"
 MEDIA_URL = f"/media/"

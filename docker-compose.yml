@@ -57,6 +57,12 @@ services:
         networks:
             - posts-network
 
+    posts-cache:
+        image: redis:7.4.0-alpine
+        restart: always
+        networks:
+            - posts-network
+
     rabbitmq:
         restart: always
         image: rabbitmq:3-management
