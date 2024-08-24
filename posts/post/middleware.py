@@ -17,13 +17,12 @@ class UserAuthentication(BaseAuthentication):
 
         try:
             response = requests.get(auth_service_url, headers={"Authorization": token})
-            print(response.json())
             if response.status_code == 200:
                 user_data = response.json()
                 return (
                     self.get_user(user_data["id"]),
                     token.split("JWT")[-1],
-                )  # Return a tuple of (user, token)
+                )
             else:
                 raise AuthenticationFailed("Invalid token")
         except requests.exceptions.RequestException:

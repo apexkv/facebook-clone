@@ -12,4 +12,4 @@ class PostView(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Post.objects.all()
+        return Post.objects.all().order_by("created_at")

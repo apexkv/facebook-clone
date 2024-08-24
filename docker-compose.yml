@@ -19,6 +19,16 @@ services:
             - public-network
             - users-network
 
+    users-db:
+        image: mysql:8.4.0
+        restart: always
+        env_file:
+            - ./users/.env
+        volumes:
+            - users-db:/var/lib/mysql
+        networks:
+            - users-network
+
     posts:
         build:
             context: ./posts
@@ -36,16 +46,6 @@ services:
         networks:
             - public-network
             - posts-network
-
-    users-db:
-        image: mysql:8.4.0
-        restart: always
-        env_file:
-            - ./users/.env
-        volumes:
-            - users-db:/var/lib/mysql
-        networks:
-            - users-network
 
     posts-db:
         image: mysql:8.4.0
