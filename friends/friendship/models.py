@@ -4,7 +4,8 @@ from neomodel import (
     StringProperty,
     RelationshipTo,
     RelationshipFrom,
-    UniqueIdProperty,
+    IntegerProperty,
+    DateTimeProperty,
 )
 
 
@@ -31,5 +32,48 @@ class User(StructuredNode):
 
 
 class FriendRequest(StructuredNode):
-    user_from_id = UniqueIdProperty()
-    user_to_id = UniqueIdProperty()
+    REQUEST_PENDING = 0
+    REQUEST_ACCEPTED = 1
+    REQUEST_REJECTED = 2
+    STATUS_CHOICES = {
+        REQUEST_PENDING: "Pending",
+        REQUEST_ACCEPTED: "Accepted",
+        REQUEST_REJECTED: "Rejected",
+    }
+
+    # Request details
+    user_from = RelationshipFrom("User", "SENT_REQUEST")
+    user_to = RelationshipTo("User", "RECEIVED_REQUEST")
+    created_at = DateTimeProperty(default_now=True)
+    status = IntegerProperty(default=REQUEST_PENDING)
+
+    def accept(self):
+        """Accept the friend request and create a FRIENDS_WITH relationship"""
+        if self.status == self.REQUEST_PENDING:
+            user_from = self.user_from.single()
+            user_to = self.user_to.single()
+
+            # Create friendship relationship between the two users
+            user_from.add_friend(user_to)
+            user_to.add_friend(user_from)
+
+            # Update status to accepted
+            self.status = self.REQUEST_ACCEPTED
+            self.save()
+
+    def cancel(self, canceling_user):
+        """
+        Cancel the friend request. Either the sender (user_from) or the receiver (user_to) can cancel it.
+        """
+        if self.status == self.REQUEST_PENDING:
+            user_from = self.user_from.single()
+            user_to = self.user_to.single()
+
+            # Allow either the sender or recipient to cancel
+            if canceling_user == user_from or canceling_user == user_to:
+                # Delete the request or mark it as canceled
+                self.delete()
+                return True
+            else:
+                return False
+        return False
