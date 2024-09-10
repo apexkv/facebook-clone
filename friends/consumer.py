@@ -4,15 +4,16 @@ import pika
 from dotenv import load_dotenv
 from time import sleep
 import django
+from friendship.models import User
 
 
 load_dotenv()
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "posts.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "friends.settings")
 django.setup()
 
 
-CURRENT_QUEUE = "posts"
+CURRENT_QUEUE = "friends"
 
 rabbitmq_user = os.getenv("RABBITMQ_DEFAULT_USER")
 rabbitmq_pass = os.getenv("RABBITMQ_DEFAULT_PASS")
@@ -51,20 +52,20 @@ channel.queue_declare(queue=CURRENT_QUEUE)
 def callback(chnl, method, properties, body):
     data = json.loads(body)
     print("--------------------------------")
-    print("[POSTS] Event Received")
+    print("[FRIENDS] Event Received")
     print(properties.content_type)
     print(data)
     print("--------------------------------")
 
     action_type = properties.content_type
 
-    # if action_type == "user.created":
-    #     user = User(
-    #         user_id=data["id"],
-    #         full_name=data["full_name"],
-    #         profile_pic=data["profile_pic"],
-    #     )
-    #     user.save()
+    if action_type == "user.created":
+        user = User(
+            user_id=data["id"],
+            full_name=data["full_name"],
+            profile_pic=data["profile_pic"],
+        )
+        user.save()
 
 
 channel.basic_consume(queue=CURRENT_QUEUE, on_message_callback=callback, auto_ack=True)
