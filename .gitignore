@@ -2,3 +2,4 @@ node_modules/
 .cache/
 src/gatsby-types.d.ts
 __pycache__/
+.DS_Store
