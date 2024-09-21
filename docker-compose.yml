@@ -71,7 +71,7 @@ services:
         env_file:
             - ./friends/.env
         ports:
-            - 8020:8000
+            - 8030:8000
         volumes:
             - ./friends:/app
         depends_on:
@@ -82,7 +82,7 @@ services:
             - friends-network
 
     friends-db:
-        image: 5.23.0-community-bullseye
+        image: neo4j:5.23.0-community-bullseye
         restart: always
         env_file:
             - ./friends/.env
@@ -90,6 +90,9 @@ services:
             - friends-db:/data
         networks:
             - friends-network
+        ports:
+            - 7474:7474
+            - 7687:7687
 
     friends-cache:
         image: redis:7.4.0-alpine
