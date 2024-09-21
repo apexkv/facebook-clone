@@ -31,4 +31,5 @@ class UserAuthentication(BaseAuthentication):
     def get_user(self, user_id):
         user = User.nodes.get(user_id=user_id)
         user.is_authenticated = True
+        print(user)
         return user
