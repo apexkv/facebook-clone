@@ -28,6 +28,7 @@ urlpatterns = [
         name="schema-swagger-ui",
     ),
     path("admin/", admin.site.urls),
+    path("posts/", views.PostViewSet.as_view({"post": "create"})),
 ]
 
 if settings.DEBUG:
