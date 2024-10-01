@@ -1,0 +1,36 @@
+name: fb-clone
+
+services:
+    users:
+        build:
+            context: ./users
+            dockerfile: Dockerfile
+        restart: always
+        env_file:
+            - ./users/.env
+        ports:
+            - 8010:8000
+        volumes:
+            - ./users:/app
+        depends_on:
+            - users-db
+        networks:
+            - public-network
+            - private-network
+
+    users-db:
+        image: mysql:8.4.0
+        restart: always
+        env_file:
+            - ./users/.env
+        volumes:
+            - users-db:/var/lib/mysql
+        networks:
+            - private-network
+
+volumes:
+    users-db:
+
+networks:
+    public-network:
+    private-network:
