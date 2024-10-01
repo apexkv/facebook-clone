@@ -28,8 +28,36 @@ services:
         networks:
             - private-network
 
+    posts-write:
+        build:
+            context: ./postwrite
+            dockerfile: Dockerfile
+        restart: always
+        env_file:
+            - ./postwrite/.env
+        ports:
+            - 8020:8000
+        volumes:
+            - ./postwrite:/app
+        depends_on:
+            - posts-write-db
+        networks:
+            - public-network
+            - private-network
+
+    posts-write-db:
+        image: mysql:8.4.0
+        restart: always
+        env_file:
+            - ./postwrite/.env
+        volumes:
+            - posts-write-db:/var/lib/mysql
+        networks:
+            - private-network
+
 volumes:
     users-db:
+    posts-write-db:
 
 networks:
     public-network:
