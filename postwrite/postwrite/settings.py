@@ -141,7 +141,7 @@ USERS_SERVICE = os.getenv("USERS_SERVICE")
 
 REST_FRAMEWORK = {
     "COERCE_DECIMAL_TO_STRING": False,
-    "DEFAULT_AUTHENTICATION_CLASSES": ("post.middleware.UserAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("posts.middleware.UserAuthentication",),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
 }
