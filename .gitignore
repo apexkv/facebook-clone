@@ -4,3 +4,4 @@ src/gatsby-types.d.ts
 __pycache__/
 .DS_Store
 .env*
+migrations/
