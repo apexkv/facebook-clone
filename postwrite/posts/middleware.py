@@ -13,7 +13,7 @@ class UserAuthentication(BaseAuthentication):
         if not token:
             return None
 
-        auth_service_url = settings.USERS_SERVICE + "/api/user/me/"
+        auth_service_url = settings.USERS_SERVICE + "/api/users/me/"
 
         try:
             response = requests.get(auth_service_url, headers={"Authorization": token})
@@ -29,6 +29,6 @@ class UserAuthentication(BaseAuthentication):
             raise AuthenticationFailed("Auth service unavailable")
 
     def get_user(self, user_id):
-        user = User.objects.filter(user_id=user_id).first()
+        user = User.objects.filter(id=user_id).first()
         user.is_authenticated = True
         return user
