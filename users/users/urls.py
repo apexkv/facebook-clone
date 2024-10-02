@@ -28,14 +28,14 @@ urlpatterns = [
         name="schema-swagger-ui",
     ),
     path("admin/", admin.site.urls),
-    re_path(r"api/user/login/?$", views.UserLoginView.as_view({"post": "create"})),
-    re_path(r"api/user/register/?$", views.UserView.as_view({"post": "create"})),
+    re_path(r"login/?$", views.UserLoginView.as_view({"post": "create"})),
+    re_path(r"register/?$", views.UserView.as_view({"post": "create"})),
     re_path(
-        r"api/user/update/?$",
+        r"update/?$",
         views.UserView.as_view({"put": "update"}),
     ),
-    re_path(r"api/user/me/?$", views.UserMeView.as_view({"get": "retrieve"})),
-    re_path(r"api/user/refresh/?$", jwt_views.TokenRefreshView.as_view()),
+    re_path(r"me/?$", views.UserMeView.as_view({"get": "retrieve"})),
+    re_path(r"refresh/?$", jwt_views.TokenRefreshView.as_view()),
 ]
 
 if settings.DEBUG:
