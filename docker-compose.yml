@@ -95,7 +95,7 @@ services:
         env_file:
             - ./.env
         networks:
-            - public-network
+            - private-network
 
 volumes:
     users-db:
