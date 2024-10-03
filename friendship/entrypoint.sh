@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Waiting for MySQL Post-Write Database to start..."
-./wait-for-it.sh friendship-db:7474 --strict
+./wait-for-it.sh friendship-db:7687 --strict
 
 echo "Waiting for RabbitMQ to start..."
 ./wait-for-it.sh rabbitmq:5672 --strict
