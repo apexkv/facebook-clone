@@ -28,7 +28,10 @@ class UserAuthentication(BaseAuthentication):
         except requests.exceptions.RequestException:
             raise AuthenticationFailed("Auth service unavailable")
 
-    def get_user(self, user_id):
-        user = User.objects.filter(id=user_id).first()
+    def get_user(self, user_data):
+        """
+        Retrieve or create a Neo4j user instance based on the user data from the external service.
+        """
+        user = User.nodes.get_or_none(user_id=user_data["id"])
         user.is_authenticated = True
         return user

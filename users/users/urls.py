@@ -18,7 +18,7 @@ schema_view = get_schema_view(
         license=openapi.License(name="BSD License"),
     ),
     public=True,
-    permission_classes=(permissions.AllowAny,),
+    # permission_classes=(permissions.AllowAny,),
 )
 
 urlpatterns = [
@@ -28,14 +28,14 @@ urlpatterns = [
         name="schema-swagger-ui",
     ),
     path("admin/", admin.site.urls),
-    re_path(r"api/user/login/?$", views.UserLoginView.as_view({"post": "create"})),
-    re_path(r"api/user/register/?$", views.UserView.as_view({"post": "create"})),
+    re_path(r"api/users/login/?$", views.UserLoginView.as_view({"post": "create"})),
+    re_path(r"api/users/register/?$", views.UserView.as_view({"post": "create"})),
     re_path(
-        r"api/user/update/?$",
+        r"api/users/update/?$",
         views.UserView.as_view({"put": "update"}),
     ),
-    re_path(r"api/user/me/?$", views.UserMeView.as_view({"get": "retrieve"})),
-    re_path(r"api/user/refresh/?$", jwt_views.TokenRefreshView.as_view()),
+    re_path(r"api/users/me/?$", views.UserMeView.as_view({"get": "retrieve"})),
+    re_path(r"api/users/refresh/?$", jwt_views.TokenRefreshView.as_view()),
 ]
 
 if settings.DEBUG:

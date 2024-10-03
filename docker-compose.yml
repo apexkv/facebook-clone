@@ -55,9 +55,52 @@ services:
         networks:
             - private-network
 
+    friendship:
+        build:
+            context: ./friendship
+            dockerfile: Dockerfile
+        restart: always
+        env_file:
+            - ./friendship/.env
+        ports:
+            - 8030:8000
+        volumes:
+            - ./friendship:/app
+        depends_on:
+            - friendship-db
+            - rabbitmq
+        networks:
+            - public-network
+            - private-network
+
+    friendship-db:
+        image: neo4j:5.23.0-community-bullseye
+        restart: always
+        env_file:
+            - ./friendship/.env
+        volumes:
+            - friendship-db:/data
+        networks:
+            - private-network
+        ports:
+            - 7474:7474
+            - 7687:7687
+
+    rabbitmq:
+        restart: always
+        image: rabbitmq:3-management
+        ports:
+            - 5672:5672
+            - 15672:15672
+        env_file:
+            - ./.env
+        networks:
+            - public-network
+
 volumes:
     users-db:
     posts-write-db:
+    friendship-db:
 
 networks:
     public-network:
