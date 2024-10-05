@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "Waiting for RabbitMQ to start..."
+./wait-for-it.sh rabbitmq:5672 --strict
+
 echo "Waiting for MySQL Post-Write Database to start..."
 ./wait-for-it.sh posts-write-db:3306 --strict
 
