@@ -17,7 +17,6 @@ services:
             - rabbitmq
         networks:
             - public-network
-            - private-network
 
     users-db:
         image: mysql:8.4.0
@@ -27,7 +26,7 @@ services:
         volumes:
             - users-db:/var/lib/mysql
         networks:
-            - private-network
+            - public-network
 
     posts-write:
         build:
@@ -45,7 +44,6 @@ services:
             - rabbitmq
         networks:
             - public-network
-            - private-network
 
     posts-write-db:
         image: mysql:8.4.0
@@ -55,7 +53,7 @@ services:
         volumes:
             - posts-write-db:/var/lib/mysql
         networks:
-            - private-network
+            - public-network
 
     friendship:
         build:
@@ -73,7 +71,6 @@ services:
             - rabbitmq
         networks:
             - public-network
-            - private-network
 
     friendship-db:
         image: neo4j:5.23.0-community-bullseye
@@ -83,7 +80,7 @@ services:
         volumes:
             - friendship-db:/data
         networks:
-            - private-network
+            - public-network
         ports:
             - 7474:7474
             - 7687:7687
@@ -97,7 +94,7 @@ services:
         env_file:
             - ./.env
         networks:
-            - private-network
+            - public-network
 
 volumes:
     users-db:
@@ -106,4 +103,3 @@ volumes:
 
 networks:
     public-network:
-    private-network:
