@@ -36,7 +36,6 @@ INSTALLED_APPS = [
     "drf_yasg",
     "djoser",
     "corsheaders",
-    "apexmq",
     #
     "friends",
 ]
@@ -134,26 +133,3 @@ NEOMODEL_ENCRYPTED_CONNECTION = True
 NEOMODEL_MAX_POOL_SIZE = 50
 
 USERS_SERVICE = os.getenv("USERS_SERVICE")
-
-mq_host = os.getenv("RABBITMQ_HOST")
-mq_user = os.getenv("RABBITMQ_DEFAULT_USER")
-mq_password = os.getenv("RABBITMQ_DEFAULT_PASS")
-APEXMQ_SETTINGS = {
-    "CONNECTIONS": {
-        "default": {
-            "HOST": mq_host,
-            "USER": mq_user,
-            "PASSWORD": mq_password,
-            "CHANNELS": {
-                "friends": {
-                    "QUEUES": {
-                        "friends": {
-                            "DURABLE": True,
-                            "AUTO_ACK": True,
-                        }
-                    }
-                }
-            },
-        }
-    }
-}

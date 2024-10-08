@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     "djoser",
     "corsheaders",
     "posts",
-    "apexmq",
 ]
 
 MIDDLEWARE = [
@@ -145,27 +144,4 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ("posts.middleware.UserAuthentication",),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
-}
-
-mq_host = os.getenv("RABBITMQ_HOST")
-mq_user = os.getenv("RABBITMQ_DEFAULT_USER")
-mq_password = os.getenv("RABBITMQ_DEFAULT_PASS")
-APEXMQ_SETTINGS = {
-    "CONNECTIONS": {
-        "default": {
-            "HOST": mq_host,
-            "USER": mq_user,
-            "PASSWORD": mq_password,
-            "CHANNELS": {
-                "post-write": {
-                    "QUEUES": {
-                        "post-write": {
-                            "DURABLE": True,
-                            "AUTO_ACK": True,
-                        }
-                    }
-                }
-            },
-        }
-    }
 }

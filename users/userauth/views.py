@@ -4,6 +4,7 @@ from rest_framework import status
 from django.contrib.auth.hashers import check_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
+from apexmq.producers import publish
 
 from .serializers import UserLoginSerializer, UserSerializer, UserUpdateSerializer
 from .models import BaseUser
@@ -72,6 +73,7 @@ class UserView(ModelViewSet):
     def get_queryset(self):
         if self.action in ["update", "partial_update"]:
             return BaseUser.objects.filter(email=self.request.user.email)
+        return BaseUser.objects.all().order_by("email")
 
     def update(self, request, *args, **kwargs):
         serializer = self.get_serializer(request.user, data=request.data, partial=True)

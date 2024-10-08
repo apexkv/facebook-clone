@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     #
     "userauth",
-    "apexmq",
 ]
 
 MIDDLEWARE = [
@@ -156,27 +155,4 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,
-}
-
-mq_host = os.getenv("RABBITMQ_HOST")
-mq_user = os.getenv("RABBITMQ_DEFAULT_USER")
-mq_password = os.getenv("RABBITMQ_DEFAULT_PASS")
-APEXMQ_SETTINGS = {
-    "CONNECTIONS": {
-        "default": {
-            "HOST": mq_host,
-            "USER": mq_user,
-            "PASSWORD": mq_password,
-            "CHANNELS": {
-                "users": {
-                    "QUEUES": {
-                        "users": {
-                            "DURABLE": True,
-                            "AUTO_ACK": True,
-                        }
-                    }
-                }
-            },
-        }
-    }
 }

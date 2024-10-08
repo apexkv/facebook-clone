@@ -29,6 +29,7 @@ urlpatterns = [
     ),
     path("admin/", admin.site.urls),
     path("posts/", views.PostViewSet.as_view({"post": "create"})),
+    path("users/", views.UsersViewSet.as_view({"get": "list"})),
 ]
 
 if settings.DEBUG:

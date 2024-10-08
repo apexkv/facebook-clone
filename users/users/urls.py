@@ -29,7 +29,14 @@ urlpatterns = [
     ),
     path("admin/", admin.site.urls),
     re_path(r"api/users/login/?$", views.UserLoginView.as_view({"post": "create"})),
-    re_path(r"api/users/register/?$", views.UserView.as_view({"post": "create"})),
+    re_path(
+        r"api/users/register/?$",
+        views.UserView.as_view({"post": "create", "get": "list"}),
+    ),
+    path(
+        "api/users/register/<uuid:pk>/",
+        views.UserView.as_view({"delete": "destroy", "get": "retrieve"}),
+    ),
     re_path(
         r"api/users/update/?$",
         views.UserView.as_view({"put": "update"}),
