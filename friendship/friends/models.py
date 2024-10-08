@@ -69,7 +69,6 @@ class User(StructuredNode):
     FRIENDS_WITH = "FRIENDS_WITH"
     user_id = StringProperty()
     full_name = StringProperty()
-    profile_pic = StringProperty()
 
     # Define relationship to other users
     friends = Relationship("User", FRIENDS_WITH)
