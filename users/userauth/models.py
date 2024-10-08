@@ -35,6 +35,20 @@ class BaseUser(AbstractUser):
 
 
 @receiver(signals.post_save, sender=BaseUser)
-def handle_on_user_create_or_update(sender, instance, created, **kwargs):
+def handle_on_user_create_or_update(sender, instance: BaseUser, created, **kwargs):
     action_type = "user.created" if created else "user.updated"
-    publish(action_type, {"id": str(instance.id), "email": instance.email}, "broadcast")
+    publish(
+        action_type,
+        {
+            "id": str(instance.id),
+            "email": instance.email,
+            "full_name": instance.full_name,
+        },
+        "broadcast",
+    )
+
+
+@receiver(signals.post_delete, sender=BaseUser)
+def handle_on_user_delete(sender, instance, **kwargs):
+    action_type = "user.deleted"
+    publish(action_type, {"id": str(instance.id)}, "broadcast")
