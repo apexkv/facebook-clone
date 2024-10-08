@@ -107,23 +107,23 @@ class ConsumeHandler:
     def user_created(self, data):
         user = User(
             id=data["id"],
-            email=data["email"],
-            email=data["email"],
+            email=data["full_name"],
         )
         try:
             user.save()
             info(f"QUEUE - {CURRENT_QUEUE}: User created")
         except Exception as e:
-            error(f"Failed to save user: {e}")
+            error(f"QUEUE - {CURRENT_QUEUE}: Failed to save user: {e}")
 
     def user_updated(self, data):
         user = User.objects.get(id=data["id"])
-        user.email = data["email"]
+        user.full_name = data["full_name"]
+
         try:
             user.save()
             info(f"QUEUE - {CURRENT_QUEUE}: User updated")
         except Exception as e:
-            error(f"Failed to update user: {e}")
+            error(f"QUEUE - {CURRENT_QUEUE}: Failed to update user: {e}")
 
     def user_deleted(self, data):
         user = User.objects.get(id=data["id"])
@@ -131,4 +131,4 @@ class ConsumeHandler:
             user.delete()
             info(f"QUEUE - {CURRENT_QUEUE}: User deleted")
         except Exception as e:
-            error(f"Failed to delete user: {e}")
+            error(f"QUEUE - {CURRENT_QUEUE}: Failed to delete user: {e}")
