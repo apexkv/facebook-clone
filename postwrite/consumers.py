@@ -1,3 +1,4 @@
+from math import e
 import pika
 
 import os
@@ -15,6 +16,7 @@ load_dotenv()
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "postwrite.settings")
 django.setup()
 
+from posts.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -101,3 +103,32 @@ class ConsumeHandler:
         else:
             msg = f"New action detected. Cannot find handling method for,\nAction: {action_type}"
             warning(msg)
+
+    def user_created(self, data):
+        user = User(
+            id=data["id"],
+            email=data["email"],
+            email=data["email"],
+        )
+        try:
+            user.save()
+            info(f"QUEUE - {CURRENT_QUEUE}: User created")
+        except Exception as e:
+            error(f"Failed to save user: {e}")
+
+    def user_updated(self, data):
+        user = User.objects.get(id=data["id"])
+        user.email = data["email"]
+        try:
+            user.save()
+            info(f"QUEUE - {CURRENT_QUEUE}: User updated")
+        except Exception as e:
+            error(f"Failed to update user: {e}")
+
+    def user_deleted(self, data):
+        user = User.objects.get(id=data["id"])
+        try:
+            user.delete()
+            info(f"QUEUE - {CURRENT_QUEUE}: User deleted")
+        except Exception as e:
+            error(f"Failed to delete user: {e}")
