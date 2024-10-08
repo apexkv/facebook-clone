@@ -1,7 +1,7 @@
 import pika
 
 import os
-from typing import List
+from typing import List, Literal
 import pika
 import json
 from dotenv import load_dotenv
@@ -45,9 +45,12 @@ def connect_to_rabbitmq():
 connection = connect_to_rabbitmq()
 channel = connection.channel()
 
+QUEUE_LIST = os.getenv("QUEUE_LIST").split(",")
 
-def publish(action, body, to: List[str]):
-    properties = pika.BasicProperties(action)
+
+def publish(method, body, to: List[str] | Literal["broadcast"]):
+    properties = pika.BasicProperties(method)
+    to = QUEUE_LIST if to == "broadcast" else to
     for queue in to:
         channel.basic_publish(
             exchange="",
