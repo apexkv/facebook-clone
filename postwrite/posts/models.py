@@ -4,11 +4,10 @@ from django.db import models
 
 class User(models.Model):
     id = models.UUIDField(primary_key=True, editable=False)
-    email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=500)
 
     def __str__(self):
-        return self.email
+        return self.full_name
 
 
 class Post(models.Model):
@@ -18,4 +17,4 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.email} - {self.created_at}"
+        return f"{self.user.full_name} - {self.created_at}"
