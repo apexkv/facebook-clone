@@ -13,6 +13,9 @@ echo "Migrating the Database..."
 python manage.py install_labels
 
 echo "Starting the server..."
-python manage.py runserver 0.0.0.0:8000
+python manage.py runserver 0.0.0.0:8000 &
+
+echo "Starting RabbitMQ Consumer..."
+python python consumers.py
 
 exec "$@"
