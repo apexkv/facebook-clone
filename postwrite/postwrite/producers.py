@@ -7,13 +7,11 @@ import json
 from dotenv import load_dotenv
 from time import sleep
 from django.utils import timezone
-import django
 import logging
 
 load_dotenv()
-django.setup()
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "users.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "postwrite.settings")
 
 rabbitmq_user = os.getenv("RABBITMQ_DEFAULT_USER")
 rabbitmq_pass = os.getenv("RABBITMQ_DEFAULT_PASS")
@@ -68,6 +66,7 @@ def connect_to_rabbitmq():
 connection = connect_to_rabbitmq()
 channel = connection.channel()
 
+CURRENT_QUEUE = os.getenv("CURRENT_QUEUE")
 QUEUE_LIST = os.getenv("QUEUE_LIST").split(",")
 
 
@@ -75,13 +74,14 @@ def publish(method, body, to: List[str] | Literal["broadcast"]):
     properties = pika.BasicProperties(method)
     to = QUEUE_LIST if to == "broadcast" else to
     for publish_to in to:
-        try:
-            channel.basic_publish(
-                exchange="",
-                routing_key=publish_to,
-                body=json.dumps(body),
-                properties=properties,
-            )
-            info(f'"PUBLISHED - QUEUE: {publish_to} | ACTION: {method}"')
-        except Exception as e:
-            error(f"Failed to publish to {publish_to}")
+        if publish_to != CURRENT_QUEUE:
+            try:
+                channel.basic_publish(
+                    exchange="",
+                    routing_key=publish_to,
+                    body=json.dumps(body),
+                    properties=properties,
+                )
+                info(f'"PUBLISHED - QUEUE: {publish_to} | ACTION: {method}"')
+            except Exception as e:
+                error(f"Failed to publish to {publish_to}")

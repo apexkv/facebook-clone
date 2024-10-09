@@ -4,7 +4,6 @@ from rest_framework import status
 from django.contrib.auth.hashers import check_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
-from apexmq.producers import publish
 
 from .serializers import UserLoginSerializer, UserSerializer, UserUpdateSerializer
 from .models import BaseUser

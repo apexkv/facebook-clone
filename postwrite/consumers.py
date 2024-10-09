@@ -40,7 +40,7 @@ def error(msg):
     logger.error(details)
 
 
-CURRENT_QUEUE = "postwrite"
+CURRENT_QUEUE = os.getenv("CURRENT_QUEUE")
 
 rabbitmq_user = os.getenv("RABBITMQ_DEFAULT_USER")
 rabbitmq_pass = os.getenv("RABBITMQ_DEFAULT_PASS")
@@ -77,19 +77,6 @@ channel = connection.channel()
 channel.queue_declare(queue=CURRENT_QUEUE)
 
 
-def callback(chnl, method, properties, body):
-    data = json.loads(body)
-    action_type = properties.content_type
-    ConsumeHandler(action_type, data)
-
-
-channel.basic_consume(queue=CURRENT_QUEUE, on_message_callback=callback, auto_ack=True)
-
-print("[POSTS-WRITE] Started consuming...")
-channel.start_consuming()
-channel.close()
-
-
 class ConsumeHandler:
     def __init__(self, action_type: str, data: dict):
         self.handle(action_type, data)
@@ -99,36 +86,50 @@ class ConsumeHandler:
         method = getattr(self, method_name, None)
 
         if callable(method):
-            method(json.loads(data))
+            method(data)
         else:
             msg = f"New action detected. Cannot find handling method for,\nAction: {action_type}"
             warning(msg)
 
     def user_created(self, data):
-        user = User(
-            id=data["id"],
-            email=data["full_name"],
-        )
         try:
+            user = User(
+                id=data["id"],
+                full_name=data["full_name"],
+            )
             user.save()
             info(f"QUEUE - {CURRENT_QUEUE}: User created")
         except Exception as e:
-            error(f"QUEUE - {CURRENT_QUEUE}: Failed to save user: {e}")
+            error(f"QUEUE - {CURRENT_QUEUE}: Failed to save user [{data['id']}]: {e}")
 
     def user_updated(self, data):
-        user = User.objects.get(id=data["id"])
-        user.full_name = data["full_name"]
-
         try:
+            user = User.objects.get(id=data["id"])
+            user.full_name = data["full_name"]
             user.save()
             info(f"QUEUE - {CURRENT_QUEUE}: User updated")
         except Exception as e:
-            error(f"QUEUE - {CURRENT_QUEUE}: Failed to update user: {e}")
+            error(f"QUEUE - {CURRENT_QUEUE}: Failed to update user [{data['id']}]: {e}")
 
     def user_deleted(self, data):
-        user = User.objects.get(id=data["id"])
         try:
+            user = User.objects.get(id=data["id"])
             user.delete()
             info(f"QUEUE - {CURRENT_QUEUE}: User deleted")
         except Exception as e:
-            error(f"QUEUE - {CURRENT_QUEUE}: Failed to delete user: {e}")
+            error(f"QUEUE - {CURRENT_QUEUE}: Failed to delete user [{data['id']}]: {e}")
+
+
+def callback(chnl, method, properties, body):
+    data = json.loads(body)
+    action_type = properties.content_type
+    info(f'"CONSUMED - QUEUE: {CURRENT_QUEUE} | ACTION: {action_type}"')
+    ConsumeHandler(action_type, data)
+
+
+channel.basic_consume(queue=CURRENT_QUEUE, on_message_callback=callback, auto_ack=True)
+
+print("[POSTS-WRITE] Started consuming...")
+channel.start_consuming()
+channel.close()
+import apexmq

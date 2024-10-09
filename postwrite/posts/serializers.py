@@ -17,4 +17,4 @@ class PostSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["full_name", "email", "password"]
+        fields = "__all__"
