@@ -133,3 +133,19 @@ NEOMODEL_ENCRYPTED_CONNECTION = True
 NEOMODEL_MAX_POOL_SIZE = 50
 
 USERS_SERVICE = os.getenv("USERS_SERVICE")
+
+db_name = os.getenv("MYSQL_DATABASE")
+db_user = os.getenv("MYSQL_USER")
+db_user_pass = os.getenv("MYSQL_PASSWORD")
+db_host = os.getenv("MYSQL_HOST")
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": db_name,
+        "USER": db_user,
+        "PASSWORD": db_user_pass,
+        "HOST": db_host,
+        "PORT": 3306,
+    }
+}

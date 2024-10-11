@@ -61,7 +61,9 @@ def connect_to_rabbitmq():
     while True:
         try:
             connection = pika.BlockingConnection(
-                pika.ConnectionParameters(rabbitmq_host, credentials=credentials)
+                pika.ConnectionParameters(
+                    rabbitmq_host, credentials=credentials, heartbeat=0
+                )
             )
             break
         except Exception as e:

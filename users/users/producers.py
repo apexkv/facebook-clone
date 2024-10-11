@@ -53,7 +53,9 @@ def connect_to_rabbitmq():
     while True:
         try:
             connection = pika.BlockingConnection(
-                pika.ConnectionParameters(rabbitmq_host, credentials=credentials)
+                pika.ConnectionParameters(
+                    rabbitmq_host, credentials=credentials, heartbeat=0
+                )
             )
             break
         except Exception as e:
@@ -84,4 +86,5 @@ def publish(method, body, to: List[str] | Literal["broadcast"]):
                 )
                 info(f'"PUBLISHED - QUEUE: {publish_to} | ACTION: {method}"')
             except Exception as e:
+                print(e)
                 error(f"Failed to publish to {publish_to}")
