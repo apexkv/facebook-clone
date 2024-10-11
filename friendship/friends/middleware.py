@@ -19,6 +19,7 @@ class UserAuthentication(BaseAuthentication):
             response = requests.get(auth_service_url, headers={"Authorization": token})
             if response.status_code == 200:
                 user_data = response.json()
+
                 return (
                     self.get_user(user_data["id"]),
                     token.split("JWT")[-1],
@@ -28,10 +29,10 @@ class UserAuthentication(BaseAuthentication):
         except requests.exceptions.RequestException:
             raise AuthenticationFailed("Auth service unavailable")
 
-    def get_user(self, user_data):
+    def get_user(self, user_id):
         """
         Retrieve or create a Neo4j user instance based on the user data from the external service.
         """
-        user = User.nodes.get_or_none(user_id=user_data["id"])
+        user = User.nodes.get_or_none(user_id=user_id)
         user.is_authenticated = True
         return user
