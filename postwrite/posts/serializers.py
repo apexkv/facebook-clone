@@ -16,7 +16,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ["content"]
+        fields = ["id", "user", "created_at", "content"]
 
     def create(self, validated_data):
         user = self.context["request"].user
