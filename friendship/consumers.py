@@ -15,7 +15,7 @@ load_dotenv()
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "friendship.settings")
 django.setup()
 
-from friends.models import User, BaseUser
+from friends.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -102,15 +102,6 @@ class ConsumeHandler:
             info(f"QUEUE - {CURRENT_QUEUE}: User created")
         except Exception as e:
             error(f"QUEUE - {CURRENT_QUEUE}: Failed to save user [{data['id']}]: {e}")
-        try:
-            user = BaseUser(
-                user_id=data["id"],
-                full_name=data["full_name"],
-            )
-            user.save()
-            info(f"QUEUE - {CURRENT_QUEUE}: [REQUEST] User created")
-        except Exception as e:
-            error(f"QUEUE - {CURRENT_QUEUE}: Failed to save user [{data['id']}]: {e}")
 
     def user_updated(self, data):
         try:
@@ -120,25 +111,12 @@ class ConsumeHandler:
             info(f"QUEUE - {CURRENT_QUEUE}: User updated")
         except Exception as e:
             error(f"QUEUE - {CURRENT_QUEUE}: Failed to update user [{data['id']}]: {e}")
-        try:
-            user = BaseUser.objects.filter(user_id=data["id"]).first()
-            user.full_name = data["full_name"]
-            user.save()
-            info(f"QUEUE - {CURRENT_QUEUE}: [REQUEST] User updated")
-        except Exception as e:
-            error(f"QUEUE - {CURRENT_QUEUE}: Failed to update user [{data['id']}]: {e}")
 
     def user_deleted(self, data):
         try:
             user = User.nodes.get(user_id=data["id"])
             user.delete()
             info(f"QUEUE - {CURRENT_QUEUE}: User deleted")
-        except Exception as e:
-            error(f"QUEUE - {CURRENT_QUEUE}: Failed to delete user [{data['id']}]: {e}")
-        try:
-            user = BaseUser.objects.filter(user_id=data["id"]).first()
-            user.delete()
-            info(f"QUEUE - {CURRENT_QUEUE}: [REQUEST] User deleted")
         except Exception as e:
             error(f"QUEUE - {CURRENT_QUEUE}: Failed to delete user [{data['id']}]: {e}")
 

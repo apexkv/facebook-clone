@@ -5,7 +5,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
-from .models import FriendRequest, User, BaseUser
+from .models import FriendRequest, User
 from .serializers import (
     FriendRequestSerializer,
     UserSerializer,
@@ -45,13 +45,7 @@ class FriendRequestView(ModelViewSet):
     serializer_class = FriendRequestSerializer
 
     def get_queryset(self):
-        return FriendRequest.objects.filter(
-            user_to__user_id=self.request.user.user_id
-        ).order_by("-created_at")
-
-    def list(self, request, *args, **kwargs):
-        print(BaseUser.objects.all().order_by("user_id"))
-        return super().list(request, *args, **kwargs)
+        return FriendRequest.get_recieved_requests(self.request.user)
 
 
 class SentFriendRequestView(ModelViewSet):
@@ -59,13 +53,7 @@ class SentFriendRequestView(ModelViewSet):
     serializer_class = FriendRequestSerializer
 
     def get_queryset(self):
-        return FriendRequest.objects.filter(
-            user_from__user_id=self.request.user.user_id
-        ).order_by("-created_at")
-
-    def list(self, request, *args, **kwargs):
-        print(BaseUser.objects.all().order_by("user_id"))
-        return super().list(request, *args, **kwargs)
+        return FriendRequest.get_sent_requests(self.request.user)
 
 
 class FriendRequestActionView(ModelViewSet):
@@ -76,15 +64,16 @@ class FriendRequestActionView(ModelViewSet):
         serializer = FriendRequestActionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        request_id = serializer.validated_data["request_id"]
+        request_id = str(serializer.validated_data["request_id"]).replace("-", "")
         action = serializer.validated_data["action"]
 
-        friend_request = FriendRequest.objects.filter(id=request_id).first()
+        friend_request = FriendRequest.nodes.get_or_none(req_id=request_id)
+
         if not friend_request:
             raise NotFound("Friend request not found")
 
         if action == "accept":
-            if friend_request.user_to.user_id != request.user.user_id:
+            if friend_request.user_to.single().user_id != request.user.user_id:
                 raise NotFound("Friend request not found")
             friend_request.accept()
 

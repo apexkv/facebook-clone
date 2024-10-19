@@ -6,14 +6,8 @@ echo "Waiting for RabbitMQ to start..."
 echo "Waiting for Neo4j Friendship Database to start..."
 ./wait-for-it.sh friendship-db:7687 --strict -t 30
 
-echo "Waiting for MySQL Friendship Database to start..."
-./wait-for-it.sh friendship-req-db:3306 --strict -t 30
-
 echo "Making Migrations..."
 python manage.py makemigrations
-
-echo "Making Migrations..."
-python manage.py migrate
 
 echo "Migrating the Database..."
 python manage.py install_labels

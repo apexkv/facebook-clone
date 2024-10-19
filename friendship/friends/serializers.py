@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from rest_framework.exceptions import APIException
-from django.shortcuts import get_object_or_404
-from .models import BaseUser, FriendRequest
+from .models import FriendRequest, User
 
 
 class UserSerializer(serializers.Serializer):
@@ -12,31 +11,38 @@ class UserSerializer(serializers.Serializer):
 class FriendRequestSerializer(serializers.Serializer):
     user_to_id = serializers.UUIDField(write_only=True)
 
-    id = serializers.CharField(read_only=True)
+    req_id = serializers.CharField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
 
-    user_from = UserSerializer(read_only=True)
-    user_to = UserSerializer(read_only=True)
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+
+        rep["user_from"] = UserSerializer(instance.user_from.single()).data
+        rep["user_to"] = UserSerializer(instance.user_to.single()).data
+
+        return rep
 
     def create(self, validated_data):
         user_from = self.context["request"].user
-        user_from = BaseUser.objects.filter(user_id=user_from.user_id).first()
 
-        user_to = get_object_or_404(BaseUser, user_id=validated_data["user_to_id"])
+        user_to = User.nodes.get_or_none(user_id=validated_data["user_to_id"])
 
-        if FriendRequest.objects.filter(user_from=user_from, user_to=user_to).exists():
-            raise APIException("Friend request already exists")
+        if not user_to:
+            raise APIException("User not found")
 
-        if FriendRequest.objects.filter(user_from=user_to, user_to=user_from).exists():
-            raise APIException("Friend request already exists")
+        if user_from.is_friends_with(user_to):
+            raise APIException("Users are already friends")
 
         if user_from == user_to:
             raise APIException("You cannot send a friend request to yourself")
 
+        if FriendRequest.is_request_exists(user_from, user_to):
+            raise APIException("Friend request already exists")
+
         try:
-            friend_request = FriendRequest(user_from=user_from, user_to=user_to)
-            friend_request.save()
+            friend_request = user_from.send_friend_request(user_to)
         except Exception as e:
+            print(e)
             raise APIException(str(e))
 
         return friend_request
