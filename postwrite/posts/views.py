@@ -39,3 +39,17 @@ class PostViewSet(ModelViewSet):
         context = super(PostViewSet, self).get_serializer_context()
         context.update({"request": self.request})
         return context
+
+
+class UserPostsViewSet(ModelViewSet):
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user_id = self.kwargs.get("pk")
+        return Post.objects.select_related("user").filter(user__id=user_id)
+
+    def get_serializer_context(self):
+        context = super(UserPostsViewSet, self).get_serializer_context()
+        context.update({"request": self.request})
+        return context

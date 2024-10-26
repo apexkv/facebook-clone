@@ -34,6 +34,10 @@ urlpatterns = [
         "posts/<uuid:pk>/comments/",
         views.CommentsViewSet.as_view({"post": "create", "get": "list"}),
     ),
+    path(
+        "<uuid:pk>/posts/",
+        views.UserPostsViewSet.as_view({"get": "list"}),
+    ),
 ]
 
 if settings.DEBUG:
