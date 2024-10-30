@@ -68,7 +68,6 @@ services:
             - ./friendship:/app
         depends_on:
             - friendship-db
-            - friendship-req-db
             - rabbitmq
         networks:
             - public-network
@@ -86,16 +85,6 @@ services:
             - 7474:7474
             - 7687:7687
 
-    friendship-req-db:
-        image: mysql:8.4.0
-        restart: always
-        env_file:
-            - ./friendship/.env
-        volumes:
-            - friendship-req-db:/var/lib/mysql
-        networks:
-            - public-network
-
     rabbitmq:
         restart: always
         image: rabbitmq:3-management
@@ -107,11 +96,18 @@ services:
         networks:
             - public-network
 
+    redis:
+        restart: always
+        image: redis:7.4.1-alpine
+        ports:
+            - 6379:6379
+        networks:
+            - public-network
+
 volumes:
     users-db:
     posts-write-db:
     friendship-db:
-    friendship-req-db:
 
 networks:
     public-network:

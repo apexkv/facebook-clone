@@ -25,6 +25,22 @@ class UserView(ModelViewSet):
             return user.get_friends()
         return User.nodes.all()
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        pagination = request.query_params.get("pagination", None)
+
+        if pagination and pagination == "false":
+            serializer = self.get_serializer(queryset, many=True)
+
+        else:
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+        return Response(serializer.data)
+
 
 class MutualFriendsView(ModelViewSet):
     permission_classes = [IsAuthenticated]

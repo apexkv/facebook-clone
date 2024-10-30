@@ -1,4 +1,3 @@
-from math import e
 import pika
 
 import os

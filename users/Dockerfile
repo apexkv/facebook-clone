@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # copy files from users folder to /app folder
 COPY . /app/
 
-EXPOSE 8000
+EXPOSE 8010
 
 RUN chmod +x /app/wait-for-it.sh
 RUN chmod +x /app/entrypoint.sh

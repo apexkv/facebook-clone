@@ -5,6 +5,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from django.conf import settings
 from django.conf.urls.static import static
+from debug_toolbar.toolbar import debug_toolbar_urls
 
 from posts import views
 
@@ -30,6 +31,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("posts/", views.PostViewSet.as_view({"post": "create"})),
     path("users/", views.UsersViewSet.as_view({"get": "list"})),
+    path("feed/", views.FeedViewSet.as_view({"get": "list"})),
     path(
         "posts/<uuid:pk>/comments/",
         views.CommentsViewSet.as_view({"post": "create", "get": "list"}),
@@ -38,7 +40,7 @@ urlpatterns = [
         "<uuid:pk>/posts/",
         views.UserPostsViewSet.as_view({"get": "list"}),
     ),
-]
+] + debug_toolbar_urls()
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
