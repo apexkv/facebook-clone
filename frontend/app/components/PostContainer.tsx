@@ -5,9 +5,7 @@ import Hr from './Hr';
 import ProfIcon from './ProfIcon';
 import { PostType, ListResponseType } from '@/types/types';
 import axios from 'axios';
-
-const token =
-	'JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM1NzgwMDY2LCJpYXQiOjE3MzA1OTYwNjYsImp0aSI6IjkxYmFkYzY4ZDEzYTQzZmNhMzFhZGRiNTA2Y2MyNjJmIiwidXNlcl9pZCI6ImM2Y2FiNTU4LWZmZGUtNDVkYy1iNjRhLWJkODM4M2M2M2UzOSJ9.ipdtZh6uSkzCxO-2FLEnBoseXiKqaGBA9oN7iPCyX2Y';
+import { apiClientPost } from '@/data/api';
 
 function PostCreate() {
 	return (
@@ -27,14 +25,10 @@ function PostCreate() {
 function PostContainer() {
 	const [postList, setPostList] = useState<PostType[]>([]);
 
-	async function getPostList(link: string | null = 'http://localhost:8020/api/postwrite/feed/') {
+	async function getPostList(link: string | null = '/feed/') {
 		if (link) {
-			await axios
-				.get(link, {
-					headers: {
-						Authorization: token,
-					},
-				})
+			await apiClientPost
+				.get(link)
 				.then((res) => {
 					const data: ListResponseType<PostType> = res.data;
 					setPostList(data.results);
