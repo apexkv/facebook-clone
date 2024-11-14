@@ -76,19 +76,20 @@ AUTH_USER_MODEL = "userauth.BaseUser"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-db_name = os.getenv("MYSQL_DATABASE")
-db_user = os.getenv("MYSQL_USER")
-db_user_pass = os.getenv("MYSQL_PASSWORD")
-db_host = os.getenv("MYSQL_HOST")
+db_name = os.getenv("POSTGRES_DB")
+db_user = os.getenv("POSTGRES_USER")
+db_user_pass = os.getenv("POSTGRES_PASSWORD")
+db_host = os.getenv("POSTGRES_HOST")
+db_port = os.getenv("POSTGRES_PORT")
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.mysql",
+        "ENGINE": "django.db.backends.postgresql",
         "NAME": db_name,
         "USER": db_user,
         "PASSWORD": db_user_pass,
         "HOST": db_host,
-        "PORT": 3306,
+        "PORT": db_port,
     }
 }
 
@@ -127,8 +128,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = f"/static/"
-MEDIA_URL = f"/media/"
+STATIC_URL = f"/static/users/"
+MEDIA_URL = f"/media/users/"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
@@ -151,8 +152,8 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("JWT",),
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=20),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=60),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,

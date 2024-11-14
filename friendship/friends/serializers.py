@@ -25,7 +25,9 @@ class FriendRequestSerializer(serializers.Serializer):
     def create(self, validated_data):
         user_from = self.context["request"].user
 
-        user_to = User.nodes.get_or_none(user_id=validated_data["user_to_id"])
+        user_to = User.nodes.get_or_none(
+            user_id=str(validated_data["user_to_id"]).replace("-", "")
+        )
 
         if not user_to:
             raise APIException("User not found")

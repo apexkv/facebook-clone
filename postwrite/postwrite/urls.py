@@ -24,20 +24,20 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path(
-        "",
+        "api/postwrite/",
         schema_view.with_ui("swagger", cache_timeout=0),
         name="schema-swagger-ui",
     ),
-    path("admin/", admin.site.urls),
-    path("posts/", views.PostViewSet.as_view({"post": "create"})),
-    path("users/", views.UsersViewSet.as_view({"get": "list"})),
-    path("feed/", views.FeedViewSet.as_view({"get": "list"})),
+    path("api/postwrite/admin/", admin.site.urls),
+    path("api/postwrite/", views.PostViewSet.as_view({"post": "create"})),
+    path("api/postwrite/users/", views.UsersViewSet.as_view({"get": "list"})),
+    path("api/postwrite/feed/", views.FeedViewSet.as_view({"get": "list"})),
     path(
-        "posts/<uuid:pk>/comments/",
+        "api/postwrite/<uuid:pk>/comments/",
         views.CommentsViewSet.as_view({"post": "create", "get": "list"}),
     ),
     path(
-        "<uuid:pk>/posts/",
+        "api/postwrite/users/<uuid:pk>/posts/",
         views.UserPostsViewSet.as_view({"get": "list"}),
     ),
 ] + debug_toolbar_urls()

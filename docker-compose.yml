@@ -16,19 +16,19 @@ services:
             - users-db
             - rabbitmq
         networks:
-            - public-network
+            - private-network
 
     users-db:
-        image: mysql:8.4.0
+        image: postgres:17
         restart: always
         env_file:
             - ./users/.env
         volumes:
-            - users-db:/var/lib/mysql
+            - users-db:/var/lib/postgresql/data
         networks:
-            - public-network
+            - private-network
 
-    posts-write:
+    postwrite:
         build:
             context: ./postwrite
             dockerfile: Dockerfile
@@ -43,17 +43,19 @@ services:
             - posts-write-db
             - rabbitmq
         networks:
-            - public-network
+            - private-network
 
     posts-write-db:
-        image: mysql:8.4.0
+        image: postgres:17
         restart: always
         env_file:
             - ./postwrite/.env
         volumes:
-            - posts-write-db:/var/lib/mysql
+            - posts-write-db:/var/lib/postgresql/data
         networks:
-            - public-network
+            - private-network
+        ports:
+            - 5432:5432
 
     friendship:
         build:
@@ -70,7 +72,7 @@ services:
             - friendship-db
             - rabbitmq
         networks:
-            - public-network
+            - private-network
 
     friendship-db:
         image: neo4j:5.23.0-community-bullseye
@@ -80,7 +82,7 @@ services:
         volumes:
             - friendship-db:/data
         networks:
-            - public-network
+            - private-network
         ports:
             - 7474:7474
             - 7687:7687
@@ -94,7 +96,7 @@ services:
         env_file:
             - ./.env
         networks:
-            - public-network
+            - private-network
 
     redis:
         restart: always
@@ -102,7 +104,18 @@ services:
         ports:
             - 6379:6379
         networks:
+            - private-network
+
+    gateway:
+        image: nginx:stable
+        restart: always
+        ports:
+            - 888:80
+        volumes:
+            - ./api/nginx.conf:/etc/nginx/nginx.conf
+        networks:
             - public-network
+            - private-network
 
 volumes:
     users-db:
@@ -110,4 +123,5 @@ volumes:
     friendship-db:
 
 networks:
+    private-network:
     public-network:

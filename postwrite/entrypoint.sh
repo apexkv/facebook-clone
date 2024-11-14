@@ -6,8 +6,8 @@ echo "Waiting for RabbitMQ to start..."
 echo "Waiting for Redis Server to start..."
 ./wait-for-it.sh redis:6379 --strict -t 30
 
-echo "Waiting for MySQL Post-Write Database to start..."
-./wait-for-it.sh posts-write-db:3306 --strict -t 30
+echo "Waiting for Postgres Post-Write Database to start..."
+./wait-for-it.sh posts-write-db:5432 --strict -t 30
 
 echo "Making Migrations..."
 python manage.py makemigrations

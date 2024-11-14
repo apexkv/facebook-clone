@@ -1,19 +1,20 @@
 'use client';
-import React, { useState } from 'react';
-import Hr from './Hr';
-import ProfIcon from './ProfIcon';
 import Link from 'next/link';
+import React, { useState } from 'react';
 import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
-import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ModeCommentOutlinedIcon from '@mui/icons-material/ModeCommentOutlined';
-import ReplyOutlinedIcon from '@mui/icons-material/ReplyOutlined';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import SendIcon from '@mui/icons-material/Send';
-import { CommentType, PostType } from '@/data/types';
+import { commentFormatTime, postFormatTime } from '@/data/funcs';
+import { CommentType, PostType } from '@/types/types';
+import ProfIcon from './ProfIcon';
+import Hr from './Hr';
+import PopUpPost from './PopUpPost';
 
-function Comment({ comment }: { comment: CommentType }) {
-	const [isLiked, setIsLiked] = useState<boolean>(comment.isLiked);
-	const timeAgo = comment.timeAgo;
-	const [likes, setLikes] = useState<number>(comment.likes);
+export function Comment({ comment }: { comment: CommentType }) {
+	const [isLiked, setIsLiked] = useState<boolean>(comment.is_liked);
+	const timeAgo = commentFormatTime(comment.created_at);
+	const [likes, setLikes] = useState<number>(comment.like_count);
 
 	function like() {
 		setIsLiked(true);
@@ -29,13 +30,13 @@ function Comment({ comment }: { comment: CommentType }) {
 		<div>
 			<div className="my-2 w-fit">
 				<div className="flex items-start">
-					<Link href={`/profile/${comment.user.id}`} className="flex items-center mr-2">
-						<ProfIcon size={4} href="/" name={comment.user.name} />
-					</Link>
+					<div className="flex items-center mr-2">
+						<ProfIcon size={4} userId={comment.user.id} name={comment.user.full_name} />
+					</div>
 					<div>
 						<div className="bg-neutral-600 rounded-2xl py-2 px-3">
 							<Link href={`/profile/${comment.user.id}`} className="flex items-center">
-								<h1 className="font-bold tracking-wide">{comment.user.name}</h1>
+								<h1 className="font-bold tracking-wide">{comment.user.full_name}</h1>
 							</Link>
 
 							<p>Lorem ipsum dolor sit amet consectetur adipisicing.</p>
@@ -73,27 +74,36 @@ function Comment({ comment }: { comment: CommentType }) {
 	);
 }
 
-function CommentsList({ comments }: { comments: CommentType[] }) {
+function CommentsList({ comments, post }: { comments: CommentType[]; post: PostType }) {
+	const [showPopUpPost, setShowPopUpPost] = useState<boolean>(false);
+
+	function openPopUpPost() {
+		setShowPopUpPost(true);
+	}
+
 	return (
 		<div className="">
-			<button className="text-neutral-400 font-semibold">View More</button>
+			<button className="text-neutral-400 font-semibold" onClick={openPopUpPost}>
+				View More
+			</button>
+			{showPopUpPost ? <PopUpPost post={post} setShowPopUpPost={setShowPopUpPost} /> : null}
 			<div className="">
-				{comments.map((comment) => {
-					return <Comment key={comment.id} comment={comment} />;
-				})}
+				{comments.map((comment) => (
+					<Comment key={comment.id} comment={comment} />
+				))}
 			</div>
 		</div>
 	);
 }
 
-function CommentsContainer({ comments }: { comments: CommentType[] }) {
+export function CommentsContainer({ comments, post }: { comments: CommentType[]; post: PostType }) {
 	return (
 		<div>
 			<Hr />
-			<CommentsList comments={comments} />
+			<CommentsList comments={comments} post={post} />
 			<form className="mt-4">
 				<div className="flex justify-between items-start">
-					<ProfIcon href="/" name="Kavindu" />
+					<ProfIcon userId={'sdfsdf'} name="Kavindu" />
 					<textarea className="w-[80%] bg-neutral-700 rounded-[30px] text-lg outline-none px-6 py-4" rows={1}></textarea>
 					<button className="w-[40px] h-[40px] mt-2 rounded-full flex justify-center items-center bg-blue-600">
 						<SendIcon className="text-lg" />
@@ -104,9 +114,9 @@ function CommentsContainer({ comments }: { comments: CommentType[] }) {
 	);
 }
 
-function ActionLine({ post }: { post: PostType }) {
-	const [isLiked, setIsLiked] = useState<boolean>(post.isLiked);
-	const [likes, setLikes] = useState<number>(post.likes);
+export function ActionLine({ post, children }: { post: PostType; children: React.ReactNode }) {
+	const [isLiked, setIsLiked] = useState<boolean>(post.is_liked);
+	const [likes, setLikes] = useState<number>(post.like_count);
 
 	function like() {
 		setIsLiked(true);
@@ -118,7 +128,7 @@ function ActionLine({ post }: { post: PostType }) {
 		setLikes(likes - 1);
 	}
 
-	const [commentSectionOn, setCommentSectionOn] = useState<boolean>(post.comment_list.length > 0);
+	const [commentSectionOn, setCommentSectionOn] = useState<boolean>(post.comments.length > 0);
 
 	function toggleCommentSection() {
 		setCommentSectionOn(!commentSectionOn);
@@ -168,7 +178,7 @@ function ActionLine({ post }: { post: PostType }) {
 					</div> */}
 				</div>
 			</div>
-			{commentSectionOn ? <CommentsContainer comments={post.comment_list} /> : null}
+			{commentSectionOn ? children : null}
 		</div>
 	);
 }
@@ -177,13 +187,18 @@ function Post({ post }: { post: PostType }) {
 	return (
 		<div className="w-full bg-neutral-800 p-4 rounded-lg my-4 shadow-lg">
 			<Link href={`/profile/${post.user.id}`} className="flex items-center">
-				<ProfIcon href="/" name={post.user.name} />
-				<h1 className="ml-4 font-medium tracking-wide">{post.user.name}</h1>
+				<ProfIcon userId={post.user.id} name={post.user.full_name} />
+				<div className="ml-4">
+					<h1 className="font-medium tracking-wide">{post.user.full_name}</h1>
+					<span className="text-neutral-400 text-sm">{postFormatTime(post.created_at)}</span>
+				</div>
 			</Link>
 			<div className="py-4 px-2">
 				<p className="text-lg">{post.content}</p>
 			</div>
-			<ActionLine post={post} />
+			<ActionLine post={post}>
+				<CommentsContainer comments={post.comments} post={post} />
+			</ActionLine>
 		</div>
 	);
 }

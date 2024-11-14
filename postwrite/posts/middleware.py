@@ -1,5 +1,6 @@
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
+from django.contrib.auth.models import AnonymousUser
 from django.conf import settings
 import requests
 
@@ -11,7 +12,7 @@ class UserAuthentication(BaseAuthentication):
         token = request.headers.get("Authorization")
 
         if not token:
-            return None
+            return AnonymousUser(), token
 
         auth_service_url = settings.USERS_SERVICE + "/api/users/me/"
 
@@ -30,5 +31,7 @@ class UserAuthentication(BaseAuthentication):
 
     def get_user(self, user_id):
         user = User.objects.filter(id=user_id).first()
+        if not user:
+            return AnonymousUser()
         user.is_authenticated = True
         return user

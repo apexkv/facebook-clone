@@ -23,11 +23,11 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path(
-        "",
+        "api/users/",
         schema_view.with_ui("swagger", cache_timeout=0),
         name="schema-swagger-ui",
     ),
-    path("admin/", admin.site.urls),
+    path("api/users/admin/", admin.site.urls),
     re_path(r"api/users/login/?$", views.UserLoginView.as_view({"post": "create"})),
     re_path(
         r"api/users/register/?$",

@@ -18,27 +18,30 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path(
-        "",
+        "api/friendship/",
         schema_view.with_ui("swagger", cache_timeout=0),
         name="schema-swagger-ui",
     ),
-    path("admin/", admin.site.urls),
-    path("users/", views.UserView.as_view({"get": "list"})),
-    path("users/<uuid:pk>/friends/", views.UserView.as_view({"get": "list"})),
+    path("api/friendship/admin/", admin.site.urls),
+    path("api/friendship/users/", views.UserView.as_view({"get": "list"})),
     path(
-        "users/<uuid:pk>/friends/mutual/",
+        "api/friendship/users/<str:pk>/friends/",
+        views.UserView.as_view({"get": "list"}),
+    ),
+    path(
+        "api/friendship/users/<str:pk>/friends/mutual/",
         views.MutualFriendsView.as_view({"get": "list"}),
     ),
     path(
-        "users/friends/requests/",
+        "api/friendship/users/friends/requests/",
         views.FriendRequestView.as_view({"get": "list", "post": "create"}),
     ),
     path(
-        "users/friends/requests/action/",
+        "api/friendship/users/friends/requests/action/",
         views.FriendRequestActionView.as_view({"post": "create"}),
     ),
     path(
-        "users/friends/requests/sent/",
+        "api/friendship/users/friends/requests/sent/",
         views.SentFriendRequestView.as_view({"get": "list"}),
     ),
 ]

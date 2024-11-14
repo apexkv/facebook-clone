@@ -72,7 +72,7 @@ class UserView(ModelViewSet):
     def get_queryset(self):
         if self.action in ["update", "partial_update"]:
             return BaseUser.objects.filter(email=self.request.user.email)
-        return BaseUser.objects.all().order_by("email")
+        return BaseUser.objects.all().order_by("full_name")
 
     def update(self, request, *args, **kwargs):
         serializer = self.get_serializer(request.user, data=request.data, partial=True)
@@ -86,8 +86,19 @@ class UserView(ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
 
+        data = serializer.data
+        user = BaseUser.objects.get(pk=data["id"])
+
+        refresh = RefreshToken.for_user(user)
+        user.update_lastlogin()
+
         return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+            {
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            },
+            status=status.HTTP_200_OK,
+            headers=headers,
         )
 
 

@@ -22,6 +22,7 @@ pycparser==2.22
 PyJWT==2.9.0
 python-dotenv==1.0.1
 python3-openid==3.2.0
+psycopg==3.2.3
 pytz==2024.2
 PyYAML==6.0.2
 requests==2.32.3

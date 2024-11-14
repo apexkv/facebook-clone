@@ -302,3 +302,7 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+*.sql
+friends.json
+test1.py
+test2.py

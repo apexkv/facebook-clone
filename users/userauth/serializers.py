@@ -4,16 +4,8 @@ from django.contrib.auth.hashers import make_password
 from .models import BaseUser
 
 
-def check_user_exists(email):
-    user = BaseUser.objects.filter(email=email)
-    if not user.exists():
-        raise serializers.ValidationError("Invalid user credentials")
-
-
 class UserLoginSerializer(serializers.Serializer):
-    email = serializers.EmailField(
-        required=True, validators=[check_user_exists], min_length=5
-    )
+    email = serializers.EmailField(required=True, min_length=5)
     password = serializers.CharField(required=True, min_length=8)
 
 
