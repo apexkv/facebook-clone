@@ -8,9 +8,13 @@ import ProfIcon from './ProfIcon';
 import { ActionLine, Comment } from './Post';
 import Hr from './Hr';
 import { apiClientPost } from '@/data/api';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/data/stores';
 
 function PopUpPost({ post, setShowPopUpPost }: { post: PostType; setShowPopUpPost: React.Dispatch<React.SetStateAction<boolean>> }) {
 	const [comments, setComments] = useState<CommentType[]>([]);
+	const userData = useSelector((state: RootState) => state.auth);
+	const [nextLink, setNextLink] = useState<string | null>(null);
 
 	async function getPostList(link: string | null = `${post.id}/comments/`) {
 		if (link) {
@@ -18,7 +22,8 @@ function PopUpPost({ post, setShowPopUpPost }: { post: PostType; setShowPopUpPos
 				.get(link)
 				.then((res) => {
 					const data = res.data as ListResponseType<CommentType>;
-					setComments(data.results);
+					setComments([...data.results]);
+					setNextLink(data.next);
 				})
 				.catch((err) => {
 					console.log(err);
@@ -41,13 +46,15 @@ function PopUpPost({ post, setShowPopUpPost }: { post: PostType; setShowPopUpPos
 				<button className="text-white absolute right-2 top-2 rounded-full bg-neutral-700 p-1" onClick={closePopUp}>
 					<CloseIcon />
 				</button>
-				<Link href={`/profile/${post.user.id}`} className="flex items-center">
+				<div className="flex items-center">
 					<ProfIcon userId={post.user.id} name={post.user.full_name} />
-					<div className="ml-4">
-						<h1 className="font-medium tracking-wide">{post.user.full_name}</h1>
-						<span className="text-neutral-400 text-sm">{postFormatTime(post.created_at)}</span>
-					</div>
-				</Link>
+					<Link href={`/profile/${post.user.id}`}>
+						<div className="ml-4">
+							<h1 className="font-medium tracking-wide">{post.user.full_name}</h1>
+							<span className="text-neutral-400 text-sm">{postFormatTime(post.created_at)}</span>
+						</div>
+					</Link>
+				</div>
 				<div className="py-4 px-2">
 					<p className="text-lg">{post.content}</p>
 				</div>
@@ -61,8 +68,12 @@ function PopUpPost({ post, setShowPopUpPost }: { post: PostType; setShowPopUpPos
 						</div>
 						<form className="mt-4">
 							<div className="flex justify-between items-start">
-								<ProfIcon userId={'sdfsdf'} name="Kavindu" />
-								<textarea className="w-[80%] bg-neutral-700 rounded-[30px] text-lg outline-none px-6 py-4" rows={1}></textarea>
+								<ProfIcon userId={userData.id} name={userData.full_name} />
+								<textarea
+									className="w-[80%] bg-neutral-700 rounded-[30px] text-lg outline-none px-6 py-4"
+									placeholder={`Comment as ${userData.full_name}`}
+									rows={1}
+								></textarea>
 								<button className="w-[40px] h-[40px] mt-2 rounded-full flex justify-center items-center bg-blue-600">
 									<SendIcon className="text-lg" />
 								</button>
