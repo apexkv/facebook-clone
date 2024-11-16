@@ -34,7 +34,7 @@ urlpatterns = [
         views.UserView.as_view({"post": "create", "get": "list"}),
     ),
     path(
-        "api/users/register/<uuid:pk>/",
+        "api/users/<uuid:pk>/",
         views.UserView.as_view({"delete": "destroy", "get": "retrieve"}),
     ),
     re_path(
