@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import Groups2OutlinedIcon from '@mui/icons-material/Groups2Outlined';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import { usePathname } from 'next/navigation';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/data/stores';
 
 function NavBar() {
 	const [navList, setNavList] = useState([
@@ -21,6 +23,8 @@ function NavBar() {
 		},
 	]);
 	const pathname = usePathname();
+	const userData = useSelector((state: RootState) => state.auth);
+	const navIcon = userData.full_name[0].toUpperCase();
 
 	useEffect(() => {
 		setNavList((prev) => {
@@ -34,7 +38,7 @@ function NavBar() {
 	}, [pathname]);
 
 	return (
-		<nav className="w-full h-[7vh] border-b border-neutral-700 bg-neutral-800 flex items-center px-6 justify-between">
+		<nav className="w-full h-[7vh] border-b border-neutral-700 bg-neutral-800 flex items-center px-6 justify-between fixed top-0 left-0 right-0">
 			<div className="flex">
 				<Link href={'/'} className="relative w-[5vh] h-[5vh] bg-blue-600 rounded-full flex justify-center items-center overflow-hidden">
 					<h1 className="text-6xl font-bold absolute -bottom-4">f</h1>
@@ -59,8 +63,8 @@ function NavBar() {
 				})}
 			</ul>
 			<div>
-				<Link href={'/profile'}>
-					<h1 className="w-[5vh] h-[5vh] bg-neutral-500 text-2xl rounded-full flex justify-center items-center">K</h1>
+				<Link href={`/profile/${userData.id}`}>
+					<h1 className="w-[5vh] h-[5vh] bg-neutral-500 text-2xl font-semibold rounded-full flex justify-center items-center">{navIcon}</h1>
 				</Link>
 			</div>
 		</nav>
