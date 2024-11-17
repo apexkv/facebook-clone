@@ -5,6 +5,7 @@ import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
 import ModeCommentOutlinedIcon from '@mui/icons-material/ModeCommentOutlined';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import SendIcon from '@mui/icons-material/Send';
+import { Skeleton } from '@mui/material';
 import { commentFormatTime, postFormatTime } from '@/data/funcs';
 import { CommentType, PostType } from '@/types/types';
 import ProfIcon from './ProfIcon';
@@ -13,7 +14,31 @@ import PopUpPost from './PopUpPost';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/data/stores';
 
-export function Comment({ comment }: { comment: CommentType }) {
+function DummyComment() {
+	return (
+		<div className="flex flex-row my-2">
+			<Skeleton variant="circular" sx={{ bgcolor: 'grey.800' }} width={40} height={40} />
+			<div className="ml-2 w-3/4 bg-neutral-600 rounded-2xl py-2 px-3">
+				<Skeleton variant="text" sx={{ fontSize: '1.5rem', bgcolor: 'grey.800' }} width={'40%'} />
+				<Skeleton variant="text" sx={{ fontSize: '1rem', bgcolor: 'grey.800' }} width={'100%'} />
+				<Skeleton variant="text" sx={{ fontSize: '1rem', bgcolor: 'grey.800' }} width={'100%'} />
+				<Skeleton variant="text" sx={{ fontSize: '1rem', bgcolor: 'grey.800' }} width={'60%'} />
+			</div>
+		</div>
+	);
+}
+
+export function DummyCommentsList() {
+	return (
+		<>
+			<DummyComment />
+			<DummyComment />
+			<DummyComment />
+		</>
+	);
+}
+
+export function Comment({ comment, ref }: { comment: CommentType; ref?: React.LegacyRef<HTMLDivElement> }) {
 	const [isLiked, setIsLiked] = useState<boolean>(comment.is_liked);
 	const timeAgo = commentFormatTime(comment.created_at);
 	const [likes, setLikes] = useState<number>(comment.like_count);
@@ -29,7 +54,7 @@ export function Comment({ comment }: { comment: CommentType }) {
 	}
 
 	return (
-		<div>
+		<div ref={ref}>
 			<div className="my-2 w-fit">
 				<div className="flex items-start">
 					<div className="flex items-center mr-2">
@@ -41,7 +66,7 @@ export function Comment({ comment }: { comment: CommentType }) {
 								<h1 className="font-bold tracking-wide">{comment.user.full_name}</h1>
 							</Link>
 
-							<p>Lorem ipsum dolor sit amet consectetur adipisicing.</p>
+							<p>{comment.content}</p>
 						</div>
 						<div className="flex justify-between mt-1 px-2">
 							<span className="flex gap-4 items-center">

@@ -1,42 +1,36 @@
-import { CommentType, PostType, ListResponseType } from '@/types/types';
+import { CommentType, PostType } from '@/types/types';
 import Link from 'next/link';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import SendIcon from '@mui/icons-material/Send';
 import CloseIcon from '@mui/icons-material/CloseSharp';
 import { postFormatTime } from '@/data/funcs';
 import ProfIcon from './ProfIcon';
-import { ActionLine, Comment } from './Post';
+import { ActionLine, Comment, DummyCommentsList } from './Post';
 import Hr from './Hr';
 import { apiClientPost } from '@/data/api';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/data/stores';
+import { useApiGetList, useInPageEndFunctionCalling } from '@/data/hooks';
 
 function PopUpPost({ post, setShowPopUpPost }: { post: PostType; setShowPopUpPost: React.Dispatch<React.SetStateAction<boolean>> }) {
-	const [comments, setComments] = useState<CommentType[]>([]);
 	const userData = useSelector((state: RootState) => state.auth);
-	const [nextLink, setNextLink] = useState<string | null>(null);
 
-	async function getPostList(link: string | null = `${post.id}/comments/`) {
-		if (link) {
-			await apiClientPost
-				.get(link)
-				.then((res) => {
-					const data = res.data as ListResponseType<CommentType>;
-					setComments([...data.results]);
-					setNextLink(data.next);
-				})
-				.catch((err) => {
-					console.log(err);
-				});
-		}
-	}
+	const { list: comments, loading, getList: getPostList, getNextList, hasMore } = useApiGetList<CommentType>({ url: `${post.id}/comments/`, apiClient: apiClientPost });
+	const lastPostRef = useInPageEndFunctionCalling({ loading, hasMore, getNextList });
 
 	function closePopUp() {
+		// Re-enable posts scrolling when popup is closed
+		window.document.body.classList.remove('overflow-hidden');
 		setShowPopUpPost(false);
 	}
 
 	useEffect(() => {
 		getPostList();
+		// Prevent posts scrolling when popup is open
+		window.document.body.classList.add('overflow-hidden');
+		return () => {
+			window.document.body.classList.remove('overflow-hidden');
+		};
 	}, []);
 
 	return (
@@ -61,10 +55,15 @@ function PopUpPost({ post, setShowPopUpPost }: { post: PostType; setShowPopUpPos
 				<ActionLine post={post}>
 					<div>
 						<Hr />
-						<div className="overflow-y-scroll h-[50vh]">
-							{comments.map((comment) => (
-								<Comment key={comment.id} comment={comment} />
-							))}
+						<div className="overflow-y-scroll h-[50vh] comments-scrollbar">
+							{comments.map((comment, index) => {
+								if (comments.length === index + 1) {
+									return <Comment key={comment.id} comment={comment} ref={lastPostRef} />;
+								} else {
+									return <Comment key={comment.id} comment={comment} />;
+								}
+							})}
+							{loading ? <DummyCommentsList /> : null}
 						</div>
 						<form className="mt-4">
 							<div className="flex justify-between items-start">
