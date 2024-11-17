@@ -115,8 +115,8 @@ function CommentsList({ comments, post }: { comments: CommentType[]; post: PostT
 			</button>
 			{showPopUpPost ? <PopUpPost post={post} setShowPopUpPost={setShowPopUpPost} /> : null}
 			<div className="">
-				{comments.map((comment) => (
-					<Comment key={comment.id} comment={comment} />
+				{comments.map((comment, index) => (
+					<Comment key={index} comment={comment} />
 				))}
 			</div>
 		</div>

@@ -1,6 +1,6 @@
 import { ListResponseType } from '@/types/types';
 import { AxiosInstance } from 'axios';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 type ApiGetListType = {
 	url: string;

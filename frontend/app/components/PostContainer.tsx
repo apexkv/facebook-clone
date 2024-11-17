@@ -74,9 +74,9 @@ function PostContainer() {
 			<PostCreate />
 			{postList.map((post, index) => {
 				if (postList.length === index + 1) {
-					return <Post key={post.id} post={post} ref={lastPostRef} />;
+					return <Post key={index} post={post} ref={lastPostRef} />;
 				} else {
-					return <Post key={post.id} post={post} />;
+					return <Post key={index} post={post} />;
 				}
 			})}
 			{loading ? <PostsLoadingDummySet /> : null}

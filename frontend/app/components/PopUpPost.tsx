@@ -58,9 +58,9 @@ function PopUpPost({ post, setShowPopUpPost }: { post: PostType; setShowPopUpPos
 						<div className="overflow-y-scroll h-[50vh] comments-scrollbar">
 							{comments.map((comment, index) => {
 								if (comments.length === index + 1) {
-									return <Comment key={comment.id} comment={comment} ref={lastPostRef} />;
+									return <Comment key={index} comment={comment} ref={lastPostRef} />;
 								} else {
-									return <Comment key={comment.id} comment={comment} />;
+									return <Comment key={index} comment={comment} />;
 								}
 							})}
 							{loading ? <DummyCommentsList /> : null}
