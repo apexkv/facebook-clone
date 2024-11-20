@@ -1,6 +1,25 @@
 name: fb-clone
 
 services:
+    frontend:
+        build:
+            context: ./frontend
+            dockerfile: Dockerfile
+        restart: always
+        ports:
+            - 3000:3000
+        volumes:
+            - ./frontend:/app
+
+        depends_on:
+            - users
+            - postwrite
+            - friendship
+            
+        networks:
+            - public-network
+            - private-network
+
     users:
         build:
             context: ./users
@@ -25,6 +44,7 @@ services:
             - ./users/.env
         volumes:
             - users-db:/var/lib/postgresql/data
+            - ./backups:/backups
         networks:
             - private-network
 
@@ -39,6 +59,7 @@ services:
             - 8020:8000
         volumes:
             - ./postwrite:/app
+            - ./backups:/backups
         depends_on:
             - posts-write-db
             - rabbitmq
@@ -52,6 +73,7 @@ services:
             - ./postwrite/.env
         volumes:
             - posts-write-db:/var/lib/postgresql/data
+            - ./backups:/backups
         networks:
             - private-network
         ports:
@@ -81,6 +103,7 @@ services:
             - ./friendship/.env
         volumes:
             - friendship-db:/data
+            - ./backups:/backups
         networks:
             - private-network
         ports:
