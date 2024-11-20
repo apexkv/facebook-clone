@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
+from celery import schedules
 
 load_dotenv()
 
@@ -32,6 +33,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     #
+    "django_celery_beat",
     "debug_toolbar",
     "rest_framework",
     "drf_yasg",
@@ -163,3 +165,11 @@ CACHES = {
 
 CELERY_BROKER_URL = "redis://redis:6379/2"
 CELERY_RESULT_BACKEND = "redis://redis:6379/2"
+
+CELERY_BEAT_SCHEDULE = {
+    "example-task-daily": {
+        "task": "posts.tasks.sample_task",  # Task to execute
+        # 'schedule': schedules.crontab(hour=7, minute=30),  # Every day at 7:30 AM
+        "schedule": 10.0,  # Every day at 7:30 AM
+    },
+}
