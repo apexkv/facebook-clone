@@ -1,12 +1,20 @@
 'use client';
 import Link from 'next/link';
-import React from 'react';
+import React, { useState } from 'react';
 
 const bgColors = ['bg-red-600', 'bg-blue-600', 'bg-green-600', 'bg-yellow-600', 'bg-indigo-600', 'bg-purple-600', 'bg-pink-600'];
 // const randomBgColor = bgColors[2];
+
 function ProfIcon({ name, userId, size = 5 }: { name: string; userId: string; size?: number }) {
 	const firstLetter = name[0].toUpperCase();
-	const randomBgColor = bgColors[Math.floor(Math.random() * bgColors.length)];
+
+	function getRandomBgColor(){
+		return bgColors[Math.floor(Math.random() * bgColors.length)];
+	}
+
+	const [randomBgColor, setRandomBgColor] = useState(getRandomBgColor())
+
+
 	return (
 		<Link href={`/profile/${userId}`}>
 			<h1
