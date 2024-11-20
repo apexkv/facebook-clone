@@ -30,6 +30,7 @@ urlpatterns = [
     ),
     path("api/postwrite/admin/", admin.site.urls),
     path("api/postwrite/", views.PostViewSet.as_view({"post": "create"})),
+    path("api/postwrite/all/", views.PostViewSet.as_view({"get": "list"})),
     path("api/postwrite/users/", views.UsersViewSet.as_view({"get": "list"})),
     path("api/postwrite/feed/", views.FeedViewSet.as_view({"get": "list"})),
     path(
@@ -39,6 +40,14 @@ urlpatterns = [
     path(
         "api/postwrite/users/<uuid:pk>/posts/",
         views.UserPostsViewSet.as_view({"get": "list"}),
+    ),
+    path(
+        "api/postwrite/<uuid:pk>/like/",
+        views.PostLikeViewSet.as_view(),
+    ),
+    path(
+        "api/postwrite/comments/<uuid:pk>/like/",
+        views.CommentLikeViewSet.as_view(),
     ),
 ] + debug_toolbar_urls()
 
