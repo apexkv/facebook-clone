@@ -3,19 +3,35 @@
 @tailwind utilities;
 
 .comments-scrollbar::-webkit-scrollbar {
-	width: 6px;
+    width: 6px;
 }
 
 .comments-scrollbar::-webkit-scrollbar-track {
-	background: #2d2d2d;
-	border-radius: 4px;
+    background: #2d2d2d;
+    border-radius: 4px;
 }
 
 .comments-scrollbar::-webkit-scrollbar-thumb {
-	background: #525252;
-	border-radius: 4px;
+    background: #525252;
+    border-radius: 4px;
 }
 
 .comments-scrollbar::-webkit-scrollbar-thumb:hover {
-	background: #6e6e6e;
+    background: #6e6e6e;
+}
+
+.comment-section {
+    max-width: 95%;
+}
+
+.comment-options-top {
+    top: calc(50% - 28px);
+}
+
+.comment-options-button {
+    opacity: 0;
+}
+
+.comment-section:hover .comment-options-button {
+    opacity: 1;
 }

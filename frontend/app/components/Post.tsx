@@ -11,9 +11,11 @@ import { CommentType, PostType } from "@/types/types";
 import ProfIcon from "./ProfIcon";
 import Hr from "./Hr";
 import PopUpPost from "./PopUpPost";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/data/stores";
 import { apiClientPost } from "@/data/api";
+import { Field, Form, Formik, FormikHelpers } from "formik";
+import { addCommentToPost, likeOrUnlikeComment, likeOrUnlikePost } from "@/data/post_slice";
 
 function DummyComment() {
     return (
@@ -39,28 +41,66 @@ export function DummyCommentsList() {
     );
 }
 
-export function Comment({ comment, ref }: { comment: CommentType; ref?: React.LegacyRef<HTMLDivElement> }) {
+export function Comment({
+    comment,
+    ref,
+    postId,
+}: {
+    comment: CommentType;
+    ref?: React.LegacyRef<HTMLDivElement>;
+    postId: string;
+}) {
+    const optionsRef = React.useRef<HTMLDivElement>(null);
+    const dispatch = useDispatch();
     const timeAgo = commentFormatTime(comment.created_at);
-    const [isLiked, setIsLiked] = useState<boolean>(comment.is_liked);
-    const [likes, setLikes] = useState<number>(comment.like_count);
+    const auth = useSelector((state: RootState) => state.auth);
+    const post = useSelector((state: RootState) => state.posts);
+    const [isOptionOpened, setIsOptionOpened] = useState<boolean>(false);
 
     async function like_or_unlike() {
         await apiClientPost
             .post(`/comments/${comment.id}/like/`)
             .then((res) => {
                 const data = res.data as { count: number; is_liked: boolean };
-                setLikes(data.count);
-                setIsLiked(data.is_liked);
+                console.log(data);
+                dispatch(
+                    likeOrUnlikeComment({
+                        postId: postId,
+                        commentId: comment.id,
+                        likeCount: data.count,
+                        isLiked: data.is_liked,
+                    })
+                );
             })
             .catch((err) => {
                 console.log(err);
             });
     }
 
+    function openOptions() {
+        setIsOptionOpened(true);
+    }
+
+    function closeOptions(event: MouseEvent) {
+        // Check if the click is outside the options menu
+        if (optionsRef.current && !optionsRef.current.contains(event.target as Node)) {
+            setIsOptionOpened(false);
+        }
+    }
+
+    useEffect(() => {
+        if (isOptionOpened) {
+            document.addEventListener("click", closeOptions);
+        }
+        return () => {
+            document.removeEventListener("click", closeOptions);
+        };
+    }, [isOptionOpened]);
+
     return (
         <div ref={ref}>
-            <div className="my-2 w-fit">
-                <div className="flex items-start">
+            <div className="my-2 w-fit max-w-[95%] comment-section">
+                <div className="flex items-start relative">
                     <div className="flex items-center mr-2">
                         <ProfIcon size={4} userId={comment.user.id} name={comment.user.full_name} />
                     </div>
@@ -75,7 +115,7 @@ export function Comment({ comment, ref }: { comment: CommentType; ref?: React.Le
                         <div className="flex justify-between mt-1 px-2">
                             <span className="flex gap-4 items-center">
                                 <span className="text-neutral-400">{timeAgo}</span>
-                                {isLiked ? (
+                                {comment.is_liked ? (
                                     <button onClick={like_or_unlike} className="text-blue-600">
                                         Like
                                     </button>
@@ -86,9 +126,9 @@ export function Comment({ comment, ref }: { comment: CommentType; ref?: React.Le
                                 )}
                             </span>
                             <span>
-                                {likes > 0 ? (
+                                {comment.like_count > 0 ? (
                                     <div className="text-neutral-400 text-sm flex gap-2">
-                                        {likes}
+                                        {comment.like_count}
                                         <div className="bg-blue-600 w-[20px] h-[20px] rounded-full flex justify-center items-center">
                                             <ThumbUpIcon className="text-white text-xs !w-[14px] !h-[14px]" />
                                         </div>
@@ -97,13 +137,29 @@ export function Comment({ comment, ref }: { comment: CommentType; ref?: React.Le
                             </span>
                         </div>
                     </div>
+                    <div className="absolute comment-options-top -right-8" ref={optionsRef}>
+                        <button
+                            onClick={openOptions}
+                            className="comment-options-button flex gap-[3px] hover:bg-neutral-600 rounded-full w-[28px] h-[28px] items-center justify-center"
+                        >
+                            <div className="w-[3px] h-[3px] rounded-full bg-slate-400" />
+                            <div className="w-[3px] h-[3px] rounded-full bg-slate-400" />
+                            <div className="w-[3px] h-[3px] rounded-full bg-slate-400" />
+                        </button>
+                        {isOptionOpened && !post.isCommentOptionsOpen ? (
+                            <div className="p-2 bg-neutral-800 rounded-lg shadow-xl flex flex-col text-sm absolute -right-full">
+                                <button className="w-48 hover:bg-neutral-600 rounded-lg">Edit</button>
+                                <button className="w-48 hover:bg-neutral-600 rounded-lg">Delete</button>
+                            </div>
+                        ) : null}
+                    </div>
                 </div>
             </div>
         </div>
     );
 }
 
-function CommentsList({ comments, post }: { comments: CommentType[]; post: PostType }) {
+function CommentsList({ post }: { post: PostType }) {
     const [showPopUpPost, setShowPopUpPost] = useState<boolean>(false);
 
     function openPopUpPost() {
@@ -117,48 +173,68 @@ function CommentsList({ comments, post }: { comments: CommentType[]; post: PostT
             </button>
             {showPopUpPost ? <PopUpPost post={post} setShowPopUpPost={setShowPopUpPost} /> : null}
             <div className="">
-                {comments.map((comment, index) => (
-                    <Comment key={index} comment={comment} />
+                {post.comments.slice(0, 3).map((comment, index) => (
+                    <Comment key={index} comment={comment} postId={post.id} />
                 ))}
             </div>
         </div>
     );
 }
 
-export function CommentsContainer({ comments, post }: { comments: CommentType[]; post: PostType }) {
+export function CommentsContainer({ post }: { post: PostType }) {
+    const dispatch = useDispatch();
     const userData = useSelector((state: RootState) => state.auth);
+
+    const initialValues = { content: "" };
+
+    async function createComment(values: typeof initialValues, formikHelpers: FormikHelpers<typeof initialValues>) {
+        await apiClientPost
+            .post(`/${post.id}/comments/`, { content: values.content })
+            .then((res) => {
+                const data = res.data as CommentType;
+                dispatch(addCommentToPost({ postId: post.id, comment: data }));
+                formikHelpers.resetForm();
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
+
     return (
         <div>
             <Hr />
-            <CommentsList comments={comments} post={post} />
-            <form className="mt-4">
-                <div className="flex justify-between items-start">
+            <CommentsList post={post} />
+            <Formik initialValues={initialValues} onSubmit={createComment} className="mt-4">
+                <Form className="flex justify-between items-start">
                     <ProfIcon userId={userData.id} name={userData.full_name} />
-                    <textarea
+                    <Field
+                        type="textarea"
+                        name="content"
                         className="w-[80%] bg-neutral-700 rounded-[30px] text-lg outline-none px-6 py-4"
                         placeholder={`Comment as ${userData.full_name}`}
                         rows={1}
-                    ></textarea>
-                    <button className="w-[40px] h-[40px] mt-2 rounded-full flex justify-center items-center bg-blue-600">
+                    />
+                    <button
+                        type="submit"
+                        className="w-[40px] h-[40px] mt-2 rounded-full flex justify-center items-center bg-blue-600"
+                    >
                         <SendIcon className="text-lg" />
                     </button>
-                </div>
-            </form>
+                </Form>
+            </Formik>
         </div>
     );
 }
 
 export function ActionLine({ post, children }: { post: PostType; children: React.ReactNode }) {
-    const [isLiked, setIsLiked] = useState<boolean>(post.is_liked);
-    const [likes, setLikes] = useState<number>(post.like_count);
+    const dispatch = useDispatch();
 
     async function like_or_unlike() {
         await apiClientPost
             .post(`/${post.id}/like/`)
             .then((res) => {
                 const data = res.data as { count: number; is_liked: boolean };
-                setLikes(data.count);
-                setIsLiked(data.is_liked);
+                dispatch(likeOrUnlikePost({ postId: post.id, likeCount: data.count, isLiked: data.is_liked }));
             })
             .catch((err) => {
                 console.log(err);
@@ -175,9 +251,9 @@ export function ActionLine({ post, children }: { post: PostType; children: React
         <div>
             <div>
                 <div>
-                    {likes > 0 ? (
+                    {post.like_count > 0 ? (
                         <div className="text-neutral-400 text-sm flex gap-2">
-                            {likes}
+                            {post.like_count}
                             <div className="bg-blue-600 w-[20px] h-[20px] rounded-full flex justify-center items-center">
                                 <ThumbUpIcon className="text-white text-xs !w-[14px] !h-[14px]" />
                             </div>
@@ -187,7 +263,7 @@ export function ActionLine({ post, children }: { post: PostType; children: React
                 <Hr />
                 <div className="w-full flex gap-1">
                     <div className="w-1/2">
-                        {isLiked ? (
+                        {post.is_liked ? (
                             <button
                                 onClick={like_or_unlike}
                                 className="flex items-center justify-center rounded-md py-2 gap-2 w-full hover:bg-neutral-600"
@@ -243,7 +319,7 @@ function Post({ post, ref }: { post: PostType; ref?: React.LegacyRef<HTMLDivElem
                 <p className="text-lg">{post.content}</p>
             </div>
             <ActionLine post={post}>
-                <CommentsContainer comments={post.comments} post={post} />
+                <CommentsContainer post={post} />
             </ActionLine>
         </div>
     );
