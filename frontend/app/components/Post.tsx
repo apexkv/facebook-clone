@@ -6,6 +6,7 @@ import ModeCommentOutlinedIcon from "@mui/icons-material/ModeCommentOutlined";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import SendIcon from "@mui/icons-material/Send";
 import { Skeleton } from "@mui/material";
+import * as Yup from "yup";
 import { commentFormatTime, postFormatTime } from "@/data/funcs";
 import { CommentType, PostType } from "@/types/types";
 import ProfIcon from "./ProfIcon";
@@ -16,6 +17,10 @@ import { RootState } from "@/data/stores";
 import { apiClientPost } from "@/data/api";
 import { Field, Form, Formik, FormikHelpers } from "formik";
 import { addCommentToPost, likeOrUnlikeComment, likeOrUnlikePost } from "@/data/post_slice";
+
+export const commentSchema = Yup.object().shape({
+    content: Yup.string().required("Required"),
+});
 
 function DummyComment() {
     return (
@@ -204,7 +209,12 @@ export function CommentsContainer({ post }: { post: PostType }) {
         <div>
             <Hr />
             <CommentsList post={post} />
-            <Formik initialValues={initialValues} onSubmit={createComment} className="mt-4">
+            <Formik
+                initialValues={initialValues}
+                onSubmit={createComment}
+                validationSchema={commentSchema}
+                className="mt-4"
+            >
                 <Form className="flex justify-between items-start">
                     <ProfIcon userId={userData.id} name={userData.full_name} />
                     <Field
@@ -244,7 +254,11 @@ export function ActionLine({ post, children }: { post: PostType; children: React
     const [commentSectionOn, setCommentSectionOn] = useState<boolean>(post.comments.length > 0);
 
     function toggleCommentSection() {
-        setCommentSectionOn(!commentSectionOn);
+        if (post.comments.length > 0) {
+            setCommentSectionOn(true);
+        } else {
+            setCommentSectionOn(!commentSectionOn);
+        }
     }
 
     return (

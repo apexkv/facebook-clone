@@ -57,8 +57,14 @@ export const postSlice = createSlice({
         closeCommentOptions: (state) => {
             state.isCommentOptionsOpen = false;
         },
+        closePopUpPost: (state, action: PayloadAction<{ postId: string }>) => {
+            const post = state.posts.find((post) => post.id === action.payload.postId);
+            if (post) {
+                post.comments = post.comments.slice(0, 3);
+            }
+        },
 	},
 });
 
-export const { addCommentToPost, addCommentListToPost, addPost, addPostList, likeOrUnlikePost, likeOrUnlikeComment, openCommentOptions, closeCommentOptions } = postSlice.actions;
+export const { addCommentToPost, addCommentListToPost, addPost, addPostList, likeOrUnlikePost, likeOrUnlikeComment, openCommentOptions, closeCommentOptions, closePopUpPost } = postSlice.actions;
 export default postSlice.reducer;

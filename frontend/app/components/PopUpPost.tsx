@@ -5,14 +5,14 @@ import SendIcon from "@mui/icons-material/Send";
 import CloseIcon from "@mui/icons-material/CloseSharp";
 import { postFormatTime } from "@/data/funcs";
 import ProfIcon from "./ProfIcon";
-import { ActionLine, Comment, DummyCommentsList } from "./Post";
+import { ActionLine, Comment, commentSchema, DummyCommentsList } from "./Post";
 import Hr from "./Hr";
 import { apiClientPost } from "@/data/api";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/data/stores";
 import { useApiGetCommentList, useInPageEndFunctionCalling } from "@/data/hooks";
 import { Field, Form, Formik, FormikHelpers } from "formik";
-import { addCommentToPost } from "@/data/post_slice";
+import { addCommentToPost, closePopUpPost } from "@/data/post_slice";
 
 function PopUpPost({
     post,
@@ -36,6 +36,7 @@ function PopUpPost({
     const initialValues = { content: "" };
 
     function closePopUp() {
+        dispatch(closePopUpPost({ postId: post.id }));
         // Re-enable posts scrolling when popup is closed
         window.document.body.classList.remove("overflow-hidden");
         setShowPopUpPost(false);
@@ -101,7 +102,12 @@ function PopUpPost({
                             })}
                             {loading ? <DummyCommentsList /> : null}
                         </div>
-                        <Formik initialValues={initialValues} onSubmit={createComment} className="pt-4">
+                        <Formik
+                            initialValues={initialValues}
+                            onSubmit={createComment}
+                            validationSchema={commentSchema}
+                            className="pt-4"
+                        >
                             <Form className="flex justify-between items-start pt-4">
                                 <ProfIcon userId={userData.id} name={userData.full_name} />
                                 <Field
