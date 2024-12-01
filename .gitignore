@@ -314,7 +314,7 @@ test6.py
 test7.py
 test8.py
 # test9.py
-*.csv
+# *.csv
 *.pkl
 *.json
 dataset
