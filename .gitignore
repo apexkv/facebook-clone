@@ -308,4 +308,16 @@ friends.json
 test1.py
 test2.py
 test3.py
+test4.py
+test5.py
+test6.py
+test7.py
+test8.py
+# test9.py
 *.csv
+*.pkl
+*.json
+dataset
+
+# except dataset in postwrite folder
+!postwrite/dataset
