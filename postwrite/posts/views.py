@@ -101,12 +101,6 @@ class UserPostsViewSet(ModelViewSet):
         context.update({"request": self.request})
         return context
 
-    def list(self, request, *args, **kwargs):
-        user_id = self.kwargs.get("pk")
-        queryset = Post.objects.filter(user__id=user_id).order_by("-created_at")
-        serializer = PostSerializer(queryset, many=True)
-        return Response(serializer.data)
-
 
 class FeedViewSet(ModelViewSet):
     serializer_class = PostSerializer
