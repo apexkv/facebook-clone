@@ -13,7 +13,7 @@ import { apiClientPost } from "@/data/api";
 import { addPost } from "@/data/post_slice";
 import { PostType } from "@/types/types";
 
-function PostCreate() {
+export function PostCreate() {
     const dispatch = useDispatch();
     const userData = useSelector((state: RootState) => state.auth);
 
@@ -79,7 +79,7 @@ function PostsLoadingDummy() {
     );
 }
 
-function PostsLoadingDummySet() {
+export function PostsLoadingDummySet() {
     return (
         <>
             <PostsLoadingDummy />

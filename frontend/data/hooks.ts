@@ -5,12 +5,25 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from './stores';
 import { addCommentListToPost, addPostList } from './post_slice';
 import { apiClientPost } from './api';
+import { createSelector } from "reselect";
 
 type InPageEndFunctionCallingType = {
 	loading: boolean;
 	hasMore: boolean;
 	getNextList: () => void;
 };
+
+
+const selectPosts = (state: RootState) => state.posts.posts;
+
+const selectUserPostList = (userId: string | undefined) =>
+  createSelector(selectPosts, (posts) =>
+    posts.filter((post) => post.is_feed_post === false && post.user.id === userId)
+);
+
+const selectFeedPostList = createSelector(selectPosts, (posts) =>
+  posts.filter((post) => post.is_feed_post === true)
+);
 
 export function useInPageEndFunctionCalling(data: InPageEndFunctionCallingType) {
 	const observer = useRef<IntersectionObserver | null>();
@@ -31,14 +44,17 @@ export function useInPageEndFunctionCalling(data: InPageEndFunctionCallingType) 
 	return lastPostRef;
 }
 
-export function useApiGetPostList() {
+export function useApiGetPostList(userId: string|undefined) {
 	const dispatch = useDispatch();
-	const postList = useSelector((state: RootState) => state.posts.posts);
+	const userPostList = useSelector(selectUserPostList(userId));
+  	const feedPostList = useSelector(selectFeedPostList);
 	const [nextLink, setNextLink] = useState<string | null>(null);
 	const [loading, setLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
 
-	async function getList(link: string | null = "/feed/") {
+	const initLink = userId ? `/users/${userId}/posts/` : "/feed/";
+
+	async function getList(link: string | null = initLink) {
 		if (!link) return;
 		setLoading(true);
 		setError(null);
@@ -62,20 +78,17 @@ export function useApiGetPostList() {
 
 	const hasMore = Boolean(nextLink);
 
-	return { postList, loading, error, hasMore, getList, getNextList };
+	return { postList: userId?userPostList:feedPostList , loading, error, hasMore, getList, getNextList };
 }
 
-type ApiGetCommentListType = {
-	postId: string;
-}
 
-export function useApiGetCommentList(data: ApiGetCommentListType) {
+export function useApiGetCommentList(postId: string, isFromFeed: boolean = true) {
 	const dispatch = useDispatch();
-	const commentList = useSelector((state: RootState) => state.posts.posts).find((post) => post.id === data.postId)?.comments || [];
+	const commentList = useSelector((state: RootState) => state.posts.posts).find((post) => post.id === postId)?.comments || [];
 	const [nextLink, setNextLink] = useState<string | null>(null);
 	const [loading, setLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
-	const initLink = `${data.postId}/comments/`
+	const initLink = `${postId}/comments/`
 
 	async function getList(link: string | null = initLink) {
 		if (!link) return;
@@ -84,10 +97,11 @@ export function useApiGetCommentList(data: ApiGetCommentListType) {
 		try {
 			const res = await apiClientPost.get(link);
 			const responseData = res.data as ListResponseType<CommentType>;
+			console.log(responseData);
 			if(initLink === link){
-				dispatch(addCommentListToPost({postId:data.postId, comments:responseData.results.slice(3, responseData.results.length)}));
+				dispatch(addCommentListToPost({postId:postId, comments:responseData.results.slice(3, responseData.results.length)}));
 			}
-			dispatch(addCommentListToPost({postId:data.postId,comments:responseData.results}));
+			dispatch(addCommentListToPost({postId:postId,comments:responseData.results}));
 			setNextLink(responseData.next);
 		} catch (err: any) {
 			setError(err.message || 'An error occurred');

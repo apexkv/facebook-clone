@@ -17,9 +17,11 @@ import { addCommentToPost, closePopUpPost } from "@/data/post_slice";
 function PopUpPost({
     post,
     setShowPopUpPost,
+    isFromFeed,
 }: {
     post: PostType;
     setShowPopUpPost: React.Dispatch<React.SetStateAction<boolean>>;
+    isFromFeed: boolean;
 }) {
     const dispatch = useDispatch();
     const userData = useSelector((state: RootState) => state.auth);
@@ -30,8 +32,8 @@ function PopUpPost({
         getList: getPostList,
         getNextList,
         hasMore,
-    } = useApiGetCommentList({ postId: post.id });
-    const lastPostRef = useInPageEndFunctionCalling({ loading, hasMore, getNextList });
+    } = useApiGetCommentList(post.id, isFromFeed);
+    const lastCommentRef = useInPageEndFunctionCalling({ loading, hasMore, getNextList });
 
     const initialValues = { content: "" };
 
@@ -95,7 +97,9 @@ function PopUpPost({
                         <div className="overflow-y-scroll h-[50vh] comments-scrollbar">
                             {comments.map((comment, index) => {
                                 if (comments.length === index + 1) {
-                                    return <Comment key={index} postId={post.id} comment={comment} ref={lastPostRef} />;
+                                    return (
+                                        <Comment key={index} postId={post.id} comment={comment} ref={lastCommentRef} />
+                                    );
                                 } else {
                                     return <Comment key={index} postId={post.id} comment={comment} />;
                                 }

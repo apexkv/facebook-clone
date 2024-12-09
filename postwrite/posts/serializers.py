@@ -47,9 +47,17 @@ class PostSerializer(serializers.ModelSerializer):
             "like_count",
             "is_liked",
             "comments",
+            "is_feed_post",
         ]
 
     def create(self, validated_data):
         user = self.context["request"].user
         post = Post.objects.create(user=user, **validated_data)
         return post
+
+
+class UserPostSerializer(PostSerializer):
+    is_feed_post = serializers.BooleanField(read_only=True, default=False)
+
+class FeedPostSerializer(PostSerializer):
+    is_feed_post = serializers.BooleanField(read_only=True, default=True)

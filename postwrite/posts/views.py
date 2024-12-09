@@ -17,7 +17,8 @@ from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_cookie, vary_on_headers
 
 from .serializers import (
-    PostSerializer,
+    FeedPostSerializer,
+    UserPostSerializer,
     UserSerializer,
     CommentSerializer,
 )
@@ -73,7 +74,7 @@ class CommentsViewSet(ModelViewSet):
 
 
 class PostViewSet(ModelViewSet):
-    serializer_class = PostSerializer
+    serializer_class = UserPostSerializer
     permission_classes = [IsAuthenticated]
     queryset = Post.objects.all()
 
@@ -84,17 +85,41 @@ class PostViewSet(ModelViewSet):
 
 
 class UserPostsViewSet(ModelViewSet):
-    serializer_class = PostSerializer
+    serializer_class = UserPostSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user_id = self.kwargs.get("pk")
-
-        return (
+        user = self.request.user
+        comments_count_with_post = 1
+    
+        queryset = (
             Post.objects.select_related("user")
+            .annotate(
+                is_liked=Exists(
+                    PostLike.objects.filter(post=OuterRef("pk"), user=user)
+                ),
+            )
+            .prefetch_related(
+                Prefetch(
+                    "comment_set",
+                    queryset=Comment.objects.select_related("user")
+                    .annotate(
+                        is_liked=Exists(
+                            CommentLike.objects.filter(
+                                comment=OuterRef("pk"), user=user
+                            )
+                        )
+                    )
+                    .order_by("-created_at")[:comments_count_with_post],
+                    to_attr="latest_comments",
+                ),
+            )
             .filter(user__id=user_id)
             .order_by("-created_at")
         )
+
+        return queryset
 
     def get_serializer_context(self):
         context = super(UserPostsViewSet, self).get_serializer_context()
@@ -103,7 +128,7 @@ class UserPostsViewSet(ModelViewSet):
 
 
 class FeedViewSet(ModelViewSet):
-    serializer_class = PostSerializer
+    serializer_class = FeedPostSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):

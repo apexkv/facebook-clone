@@ -19,6 +19,7 @@ export type PostType = {
 	like_count: number;
 	created_at: string;
 	is_liked: boolean;
+	is_feed_post: boolean;
 	comments: CommentType[];
 };
 

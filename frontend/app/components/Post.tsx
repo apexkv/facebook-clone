@@ -17,6 +17,7 @@ import { RootState } from "@/data/stores";
 import { apiClientPost } from "@/data/api";
 import { Field, Form, Formik, FormikHelpers } from "formik";
 import { addCommentToPost, likeOrUnlikeComment, likeOrUnlikePost } from "@/data/post_slice";
+import { useApiGetCommentList, useInPageEndFunctionCalling } from "@/data/hooks";
 
 export const commentSchema = Yup.object().shape({
     content: Yup.string().required("Required"),
@@ -164,7 +165,7 @@ export function Comment({
     );
 }
 
-function CommentsList({ post }: { post: PostType }) {
+function CommentsList({ post, isFromFeed }: { post: PostType; isFromFeed: boolean }) {
     const [showPopUpPost, setShowPopUpPost] = useState<boolean>(false);
 
     function openPopUpPost() {
@@ -176,7 +177,9 @@ function CommentsList({ post }: { post: PostType }) {
             <button className="text-neutral-400 font-semibold" onClick={openPopUpPost}>
                 View More
             </button>
-            {showPopUpPost ? <PopUpPost post={post} setShowPopUpPost={setShowPopUpPost} /> : null}
+            {showPopUpPost ? (
+                <PopUpPost post={post} setShowPopUpPost={setShowPopUpPost} isFromFeed={isFromFeed} />
+            ) : null}
             <div className="">
                 {post.comments.slice(0, 3).map((comment, index) => (
                     <Comment key={index} comment={comment} postId={post.id} />
@@ -186,7 +189,7 @@ function CommentsList({ post }: { post: PostType }) {
     );
 }
 
-export function CommentsContainer({ post }: { post: PostType }) {
+export function CommentsContainer({ post, isFromFeed }: { post: PostType; isFromFeed: boolean }) {
     const dispatch = useDispatch();
     const userData = useSelector((state: RootState) => state.auth);
 
@@ -208,7 +211,7 @@ export function CommentsContainer({ post }: { post: PostType }) {
     return (
         <div>
             <Hr />
-            <CommentsList post={post} />
+            <CommentsList post={post} isFromFeed={isFromFeed} />
             <Formik
                 initialValues={initialValues}
                 onSubmit={createComment}
@@ -317,7 +320,15 @@ export function ActionLine({ post, children }: { post: PostType; children: React
     );
 }
 
-function Post({ post, ref }: { post: PostType; ref?: React.LegacyRef<HTMLDivElement> }) {
+function Post({
+    post,
+    ref,
+    isFromFeed = true,
+}: {
+    post: PostType;
+    ref?: React.LegacyRef<HTMLDivElement>;
+    isFromFeed?: boolean;
+}) {
     return (
         <div className="w-full bg-neutral-800 p-4 rounded-lg my-4 shadow-lg" ref={ref}>
             <div className="flex items-center">
@@ -333,7 +344,7 @@ function Post({ post, ref }: { post: PostType; ref?: React.LegacyRef<HTMLDivElem
                 <p className="text-lg">{post.content}</p>
             </div>
             <ActionLine post={post}>
-                <CommentsContainer post={post} />
+                <CommentsContainer post={post} isFromFeed={isFromFeed} />
             </ActionLine>
         </div>
     );
