@@ -1,8 +1,13 @@
 "use client";
-import { apiClientUser } from "@/data/api";
+import { apiClientUser, apiClientFriends } from "@/data/api";
 import { UserType } from "@/types/types";
 import React, { useEffect, useState } from "react";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
+import AddFreindIcon from "@mui/icons-material/PersonAddAlt1";
+import CheckIcon from "@mui/icons-material/Check";
+import PersonIcon from "@mui/icons-material/Person";
+import ArrowForwardOutlinedIcon from "@mui/icons-material/ArrowForwardOutlined";
+import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined";
 import Link from "next/link";
 import { PostCreate, PostsLoadingDummySet } from "@/app/components/PostContainer";
 import { useApiGetPostList, useInPageEndFunctionCalling } from "@/data/hooks";
@@ -25,6 +30,62 @@ function UserNotFound() {
     );
 }
 
+function FriendButton({ user }: { user: UserType }) {
+    const authUser = useSelector((state: RootState) => state.auth);
+
+    // if auth user friend with user
+    if (user.is_friend) {
+        return (
+            <button className="bg-blue-500 px-6 py-2 rounded-md text-white flex items-center">
+                <span className="relative">
+                    <PersonIcon className="mr-2" />
+                    <CheckIcon className="absolute top-1 right-1" sx={{ fontSize: 12 }} />
+                </span>
+                Friends
+            </button>
+        );
+    }
+    // if auth user is user
+    if (user.id === authUser.id) {
+        return null;
+    }
+    // if auth user sent friend request to user
+    if (user.sent_request) {
+        return (
+            <div>
+                <button className="bg-blue-500 px-6 py-2 rounded-md text-white flex items-center">
+                    <span className="relative">
+                        <PersonIcon className="mr-2" />
+                        <ArrowForwardOutlinedIcon className="absolute top-1 right-1" sx={{ fontSize: 12 }} />
+                    </span>
+                    Request Sent
+                </button>
+            </div>
+        );
+    }
+    // if auth user received friend request from user
+    if (user.received_request) {
+        return (
+            <div>
+                <button className="bg-blue-500 px-6 py-2 rounded-md text-white flex items-center">
+                    <span className="relative">
+                        <PersonIcon className="mr-2" />
+                        <ArrowBackOutlinedIcon className="absolute top-1 right-1" sx={{ fontSize: 12 }} />
+                    </span>
+                    Accept Request
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <button className="bg-blue-500 px-6 py-2 rounded-md text-white flex items-center">
+            <AddFreindIcon className="mr-2" />
+            Add Friend
+        </button>
+    );
+}
+
 function Profile() {
     const params = useParams<{ id: string }>();
     const [user, setUser] = useState<UserType | null>(null);
@@ -34,8 +95,8 @@ function Profile() {
     async function getUserProfile() {
         if (!params.id) return;
         setLoading(true);
-        await apiClientUser
-            .get(`${params.id}/`)
+        await apiClientFriends
+            .get(`/users/${params.id}/`)
             .then((res) => {
                 setUser(res.data);
             })
@@ -71,7 +132,10 @@ function Profile() {
                                     .split(" ")
                                     .map((name) => name[0].toUpperCase())}
                             </div>
-                            <h1 className="text-white text-3xl font-medium">{user.full_name}</h1>
+                            <div className="flex justify-between w-4/5">
+                                <h1 className="text-white text-3xl font-medium">{user.full_name}</h1>
+                                <FriendButton user={user} />
+                            </div>
                         </div>
                     </div>
                     <div className="w-[700px]">

@@ -15,7 +15,7 @@ services:
             - users
             - postwrite
             - friendship
-            
+
         networks:
             - public-network
             - private-network
@@ -63,6 +63,7 @@ services:
         depends_on:
             - posts-write-db
             - rabbitmq
+            - redis
         networks:
             - private-network
 
@@ -93,6 +94,7 @@ services:
         depends_on:
             - friendship-db
             - rabbitmq
+            - redis
         networks:
             - private-network
 

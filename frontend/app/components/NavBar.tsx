@@ -31,6 +31,8 @@ function NavBar() {
             return prev.map((nav) => {
                 if (nav.href === pathname) {
                     return { ...nav, active: true };
+                } else if (nav.href === "/friends" && pathname.split("/")[1] === "friends") {
+                    return { ...nav, active: true };
                 }
                 return { ...nav, active: false };
             });

@@ -1,12 +1,18 @@
+import random
+from re import A
 from typing import List
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
+from django.core.cache import cache
+from django_redis import get_redis_connection
 from .models import FriendRequest, User
 from .serializers import (
     FriendRequestSerializer,
+    FriendSuggestionsSerializer,
     UserSerializer,
     FriendRequestActionSerializer,
 )
@@ -14,7 +20,7 @@ from .serializers import (
 
 class UserView(ModelViewSet):
     serializer_class = UserSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         if self.kwargs.get("pk", None):
@@ -25,6 +31,16 @@ class UserView(ModelViewSet):
                 raise NotFound("User not found")
             return user.get_friends()
         return User.nodes.all()
+    
+    def retrieve(self, request, *args, **kwargs):
+        friend_id = str(kwargs["pk"]).replace("-", "")
+        user = request.user
+        result = user.get_user_by_id(friend_id)
+
+        if not result:
+            raise NotFound("User not found")
+        
+        return Response(result)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -101,5 +117,64 @@ class FriendRequestActionView(ModelViewSet):
             ):
                 raise NotFound("Friend request not found")
             friend_request.reject()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class FriendSuggestionsView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = FriendSuggestionsSerializer
+
+    def get(self, request):
+        page_number = int(request.query_params.get("page", 1))
+
+        max_result_count = 200
+        page_per_result = 10
+
+        result = self.get_suggesion_friends_list()
+        base_link = self.request.build_absolute_uri().split("?")[0]
+        next_link = f"{base_link}?page={page_number + 1}"
+        max_page_number = max_result_count // page_per_result
+        
+
+        data = {
+            "next": next_link if page_number < max_page_number else None,
+            "results": result,
+        }
+
+        return Response(data)
+    
+    def get_suggesion_friends_list(self):
+        user = self.request.user
+        page_number = int(self.request.query_params.get("page", 1))
+        cache_key = f"friend_suggesion_{user.user_id}"
+        result = cache.get(cache_key)
+
+        if not result:
+            result = user.get_friend_suggesion() 
+            random.shuffle(result)
+            cache.set(cache_key, result, 60*60*24) # 24 hours
+        return_result = result[(page_number - 1) * 10 : page_number * 10]
+        return return_result
+    
+    def delete(self, request, pk):
+        cache_key = f"friend_suggesion_{request.user.user_id}"
+        user_id = pk
+
+        if not user_id:
+            raise NotFound("User not found")
+        
+        result = cache.get(cache_key)
+
+        if not result:
+            raise NotFound("User not found")
+        
+        result = [user for user in result if user["id"] != user_id]
+        ttl = cache.ttl(cache_key)
+
+        if ttl:
+            cache.set(cache_key, result, ttl)
+        else:
+            cache.set(cache_key, result, 60*60*24)
 
         return Response(status=status.HTTP_204_NO_CONTENT)

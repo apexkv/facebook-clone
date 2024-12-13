@@ -68,7 +68,6 @@ export function Comment({
             .post(`/comments/${comment.id}/like/`)
             .then((res) => {
                 const data = res.data as { count: number; is_liked: boolean };
-                console.log(data);
                 dispatch(
                     likeOrUnlikeComment({
                         postId: postId,

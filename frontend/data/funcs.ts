@@ -1,4 +1,8 @@
-import { TokensType } from '@/types/types';
+import { ListResponseType, TokensType, UserType } from '@/types/types';
+import {store,RootState} from '@/data/stores'
+import { addFriendList, setError, setLoading, setNextLink } from './friends_slice';
+import { apiClientFriends } from './api';
+
 
 export function postFormatTime(created_at: string): string {
 	const currentTime = new Date();
@@ -81,4 +85,29 @@ export function getUserTokens() {
 
 export function clearUserTokens() {
 	window.localStorage.removeItem(AUTH_TOKENS);
+}
+
+
+export async function getFriendSuggestions(link: string | null = "/suggestions/"){
+	if (!link) return;
+		store.dispatch(setLoading(true))
+		store.dispatch(setError(null))
+		try {
+			const res = await apiClientFriends.get(link);
+			const responseData = res.data as ListResponseType<UserType>;
+			store.dispatch(addFriendList(responseData.results))
+			store.dispatch(setNextLink(responseData.next))
+		} catch (err: any) {
+			store.dispatch(setError(err.message || 'An error occurred'))
+			console.error(err);
+		} finally {
+			store.dispatch(setLoading(false))
+		}
+}
+
+export async function getNextFriendSuggestions(){
+	const state = store.getState() as RootState;
+	const {loading, next_link} = state.friends;
+	if (loading || !next_link) return;
+	await getFriendSuggestions(next_link);
 }

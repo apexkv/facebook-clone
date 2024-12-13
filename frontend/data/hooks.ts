@@ -1,10 +1,10 @@
-import { CommentType, ListResponseType, PostType } from '@/types/types';
+import { CommentType, ListResponseType, PostType, UserType } from '@/types/types';
 import { AxiosInstance } from 'axios';
 import { useCallback, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from './stores';
 import { addCommentListToPost, addPostList } from './post_slice';
-import { apiClientPost } from './api';
+import { apiClientFriends, apiClientPost } from './api';
 import { createSelector } from "reselect";
 
 type InPageEndFunctionCallingType = {
@@ -18,7 +18,7 @@ const selectPosts = (state: RootState) => state.posts.posts;
 
 const selectUserPostList = (userId: string | undefined) =>
   createSelector(selectPosts, (posts) =>
-    posts.filter((post) => post.is_feed_post === false && post.user.id === userId)
+    posts.filter((post) => post.is_feed_post === false || post.user.id === userId)
 );
 
 const selectFeedPostList = createSelector(selectPosts, (posts) =>
@@ -44,7 +44,7 @@ export function useInPageEndFunctionCalling(data: InPageEndFunctionCallingType) 
 	return lastPostRef;
 }
 
-export function useApiGetPostList(userId: string|undefined) {
+export function useApiGetPostList(userId?: string) {
 	const dispatch = useDispatch();
 	const userPostList = useSelector(selectUserPostList(userId));
   	const feedPostList = useSelector(selectFeedPostList);
@@ -82,7 +82,7 @@ export function useApiGetPostList(userId: string|undefined) {
 }
 
 
-export function useApiGetCommentList(postId: string, isFromFeed: boolean = true) {
+export function useApiGetCommentList(postId: string) {
 	const dispatch = useDispatch();
 	const commentList = useSelector((state: RootState) => state.posts.posts).find((post) => post.id === postId)?.comments || [];
 	const [nextLink, setNextLink] = useState<string | null>(null);
@@ -97,7 +97,6 @@ export function useApiGetCommentList(postId: string, isFromFeed: boolean = true)
 		try {
 			const res = await apiClientPost.get(link);
 			const responseData = res.data as ListResponseType<CommentType>;
-			console.log(responseData);
 			if(initLink === link){
 				dispatch(addCommentListToPost({postId:postId, comments:responseData.results.slice(3, responseData.results.length)}));
 			}

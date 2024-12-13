@@ -146,7 +146,7 @@ class FeedViewSet(ModelViewSet):
         if response.status_code != 200:
             raise APIException("Something went wrong please try again later.")
 
-        user_ids = [str(uuid.UUID(friend["user_id"])) for friend in response.json()]
+        user_ids = [friend["id"] for friend in response.json()]
 
         # two_weeks_ago = timezone.now() - timedelta(weeks=2)
         two_weeks_ago = timezone.now() - timedelta(weeks=48)
