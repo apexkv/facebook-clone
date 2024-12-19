@@ -6,6 +6,7 @@ import { storeUserTokens, clearUserTokens } from './funcs';
 export type AuthType = {
 	id: string;
 	full_name: string;
+	request_count: number;
 	token: TokensType;
 	isAuthenticated: boolean;
 };
@@ -13,6 +14,7 @@ export type AuthType = {
 const initialState: AuthType = {
 	id: '',
 	full_name: '',
+	request_count: 0,
 	token: {
 		access: '',
 		refresh: '',
@@ -43,8 +45,11 @@ export const authSlice = createSlice({
 			state.id = action.payload.id;
 			state.full_name = action.payload.full_name;
 		},
+		updateRequestCount: (state, action: PayloadAction<number>) => {
+			state.request_count = action.payload;
+		}
 	},
 });
 
-export const { login, logout, setUserData } = authSlice.actions;
+export const { login, logout, setUserData, updateRequestCount } = authSlice.actions;
 export default authSlice.reducer;

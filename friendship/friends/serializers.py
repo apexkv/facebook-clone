@@ -46,13 +46,8 @@ class FriendRequestSerializer(serializers.Serializer):
     req_id = serializers.CharField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
 
-    def to_representation(self, instance):
-        rep = super().to_representation(instance)
-
-        rep["user_from"] = UserSerializer(instance.user_from.single()).data
-        rep["user_to"] = UserSerializer(instance.user_to.single()).data
-
-        return rep
+    mutual_friends_count = serializers.IntegerField(read_only=True)
+    mutual_friends_name_list = serializers.ListField(read_only=True)
 
     def create(self, validated_data):
         user_from = self.context["request"].user

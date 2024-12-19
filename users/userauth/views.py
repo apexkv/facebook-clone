@@ -110,8 +110,8 @@ class UserMeView(ModelViewSet):
         return BaseUser.objects.filter(email=self.request.user.email)
 
     def retrieve(self, request, *args, **kwargs):
-        return Response(
-            self.get_serializer_class()(
+        data = self.get_serializer_class()(
                 self.request.user, context={"request": request}
             ).data
-        )
+            
+        return Response(data)

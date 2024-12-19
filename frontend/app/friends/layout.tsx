@@ -1,9 +1,13 @@
 "use client";
+import { RootState } from "@/data/stores";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect } from "react";
+import { useSelector } from "react-redux";
 
 function FriendsNavBar() {
+    const authUser = useSelector((state: RootState) => state.auth);
+    const request_count = useSelector((state: RootState) => state.auth.request_count);
     const pathname = usePathname();
     const [navList, setNavList] = React.useState([
         {
@@ -12,7 +16,7 @@ function FriendsNavBar() {
             is_active: true,
         },
         {
-            name: "Received Friend Requests",
+            name: "Friend Requests",
             url: "/friends/received",
             is_active: false,
         },
@@ -23,7 +27,7 @@ function FriendsNavBar() {
         },
         {
             name: "All Friends",
-            url: "/friends/all",
+            url: `/profile/${authUser.id}/friends`,
             is_active: false,
         },
     ]);
@@ -38,7 +42,7 @@ function FriendsNavBar() {
     }, [pathname]);
 
     return (
-        <nav className="fixed pt-[7vh] top-0 bottom-0 left-0 h-screen w-[250px] bg-neutral-800 shadow-lg rounded-b-md">
+        <nav className="fixed pt-[7vh] top-0 bottom-0 left-0 h-screen w-[280px] bg-neutral-800 shadow-lg rounded-b-md">
             <ul className="w-full py-4 px-2">
                 {navList.map((nav, index) => (
                     <li key={index} className="my-1">
@@ -49,6 +53,11 @@ function FriendsNavBar() {
                             }`}
                         >
                             {nav.name}
+                            {nav.url === "/friends/received" && request_count > 0 && (
+                                <span className="ml-1 bg-red-500 text-white text-[10px] p-1 font-semibold rounded-full">
+                                    {request_count > 99 ? "99+" : request_count}
+                                </span>
+                            )}
                         </Link>
                     </li>
                 ))}

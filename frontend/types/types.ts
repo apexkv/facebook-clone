@@ -1,5 +1,6 @@
 export type UserType = {
 	id: string;
+	req_id: string;
 	full_name: string;
 	is_friend: boolean;
 	sent_request: boolean;
@@ -7,6 +8,7 @@ export type UserType = {
 	mutual_friends: number;
 	mutual_friends_list: UserType[];
 	mutual_friends_name_list: string[];
+	created_at: string;
 };
 
 export type CommentType = {

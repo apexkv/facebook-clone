@@ -24,6 +24,7 @@ urlpatterns = [
     ),
     path("api/friendship/admin/", admin.site.urls),
     path("api/friendship/users/", views.UserView.as_view({"get": "list"})),
+    path("api/friendship/me/", views.UserMeView.as_view()),
     path("api/friendship/suggestions/<str:pk>/", views.FriendSuggestionsView.as_view()),
     path("api/friendship/suggestions/", views.FriendSuggestionsView.as_view()),
     path("api/friendship/users/<str:pk>/", views.UserView.as_view({"get": "retrieve"})),
@@ -37,7 +38,7 @@ urlpatterns = [
     ),
     path(
         "api/friendship/users/friends/requests/",
-        views.FriendRequestView.as_view({"get": "list", "post": "create"}),
+        views.FriendRequestView.as_view(),
     ),
     path(
         "api/friendship/users/friends/requests/action/",
@@ -45,6 +46,6 @@ urlpatterns = [
     ),
     path(
         "api/friendship/users/friends/requests/sent/",
-        views.SentFriendRequestView.as_view({"get": "list"}),
+        views.SentFriendRequestView.as_view(),
     ),
 ]

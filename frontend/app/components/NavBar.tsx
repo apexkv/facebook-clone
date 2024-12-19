@@ -8,6 +8,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/data/stores";
 
 function NavBar() {
+    const request_count = useSelector((state: RootState) => state.auth.request_count);
     const [navList, setNavList] = useState([
         {
             name: "Home",
@@ -63,6 +64,11 @@ function NavBar() {
                                 >
                                     {nav.icon}
                                     {nav.name}
+                                    {nav.href === "/friends" && request_count > 0 ? (
+                                        <span className="ml-2 bg-red-600 text-[12px] font-semibold p-1 text-white flex justify-center items-center rounded-full">
+                                            {request_count > 99 ? "99+" : request_count}
+                                        </span>
+                                    ) : null}
                                 </div>
                             </Link>
                         </li>

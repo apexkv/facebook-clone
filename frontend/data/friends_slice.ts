@@ -40,7 +40,7 @@ export const friendsSlice = createSlice({
 
             console.log("Updated friends list:", state.friends);
         },
-        updateFreiend: (state, action: PayloadAction<UserType>) => {
+        updateFriend: (state, action: PayloadAction<UserType>) => {
             state.friends = state.friends.map(friend => {
                 if (friend.id === action.payload.id) {
                     return action.payload;
@@ -51,5 +51,5 @@ export const friendsSlice = createSlice({
 	},
 });
 
-export const { addFriendList, setNextLink, setError, setLoading, removeFriend, updateFreiend } = friendsSlice.actions;
+export const { addFriendList, setNextLink, setError, setLoading, removeFriend, updateFriend } = friendsSlice.actions;
 export default friendsSlice.reducer;

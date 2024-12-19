@@ -80,6 +80,8 @@ channel.queue_declare(queue=CURRENT_QUEUE)
 
 class ConsumeHandler:
     def __init__(self, action_type: str, data: dict):
+        data = data or {}
+        data["id"] = data["id"].replace("-", "")
         self.handle(action_type, data)
 
     def handle(self, action_type: str, data: dict):

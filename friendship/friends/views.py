@@ -1,6 +1,8 @@
+import json
 import random
 from re import A
 from typing import List
+import uuid
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -8,7 +10,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
 from django.core.cache import cache
-from django_redis import get_redis_connection
+from django.utils import timezone
 from .models import FriendRequest, User
 from .serializers import (
     FriendRequestSerializer,
@@ -18,19 +20,23 @@ from .serializers import (
 )
 
 
-class UserView(ModelViewSet):
-    serializer_class = UserSerializer
+HR_1 = 60 * 60
+PAGE_SIZE = 10
+
+
+class UserMeView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        if self.kwargs.get("pk", None):
-            user = User.nodes.get_or_none(
-                user_id=str(self.kwargs["pk"]).replace("-", "")
-            )
-            if not user:
-                raise NotFound("User not found")
-            return user.get_friends()
-        return User.nodes.all()
+    def get(self, request):
+        user = request.user
+        user_data = {
+            "request_count": user.get_request_count(),
+        }
+        return Response(user_data, status=status.HTTP_200_OK)
+
+
+class UserView(ModelViewSet):
+    permission_classes = [IsAuthenticated]
     
     def retrieve(self, request, *args, **kwargs):
         friend_id = str(kwargs["pk"]).replace("-", "")
@@ -43,50 +49,148 @@ class UserView(ModelViewSet):
         return Response(result)
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        auth_user = request.user
+        user_id = str(kwargs["pk"]).replace("-", "")
+        user = User.nodes.get_or_none(user_id=user_id)
 
-        pagination = request.query_params.get("pagination", None)
+        if not user:
+            raise NotFound("User not found")
+        
+        page_no = int(request.query_params.get("page", 1))
+        base_link = self.request.build_absolute_uri().split("?")[0]
 
-        if pagination and pagination == "false":
-            serializer = self.get_serializer(queryset, many=True)
+        cache_key = f"friend_list_{user_id}"
+        result = cache.get(cache_key)
 
-        else:
-            page = self.paginate_queryset(queryset)
-            if page is not None:
-                serializer = self.get_serializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
+        if not result:
+            result = user.get_friends(auth_user.user_id)
+            cache.set(cache_key, result, HR_1)
 
-        return Response(serializer.data)
+        next_link = f"{base_link}?page={page_no + 1}"
+        max_page_number = len(result) // PAGE_SIZE
+
+        data = {
+            "next": next_link if page_no < max_page_number else None,
+            "results": result[(page_no - 1) * PAGE_SIZE : page_no * PAGE_SIZE],
+        }
+
+        return Response(data)
 
 
 class MutualFriendsView(ModelViewSet):
     permission_classes = [IsAuthenticated]
-    serializer_class = UserSerializer
 
-    def get_queryset(self):
-        user_id = self.kwargs["pk"]
-        authenticated_user = self.request.user
-        other_user = User.nodes.get_or_none(user_id=user_id)
-        if not other_user:
+    def list(self, request, *args, **kwargs):
+        auth_user = request.user
+        user_id = str(kwargs["pk"]).replace("-", "")
+        user = User.nodes.get_or_none(user_id=user_id)
+
+        if not user:
             raise NotFound("User not found")
-        mutual_friends = authenticated_user.get_mutual_friends(other_user)
-        return mutual_friends
+        
+        page_no = int(request.query_params.get("page", 1))
+        base_link = self.request.build_absolute_uri().split("?")[0]
 
+        cache_key = f"mutual_friend_{user_id}-{auth_user.user_id}"
+        cache_key_reverse = f"mutual_friend_{auth_user.user_id}-{user_id}"
+        result = cache.get(cache_key) or cache.get(cache_key_reverse)
 
-class FriendRequestView(ModelViewSet):
+        if not result:
+            result = user.get_mutual_friends(auth_user.user_id)
+            cache.set(cache_key, result, HR_1)
+            cache.set(cache_key_reverse, result, HR_1)
+
+        next_link = f"{base_link}?page={page_no + 1}"
+        max_page_number = len(result) // PAGE_SIZE
+
+        data = {
+            "next": next_link if page_no < max_page_number else None,
+            "results": result[(page_no - 1) * PAGE_SIZE : page_no * PAGE_SIZE],
+        }
+
+        return Response(data)
+
+class FriendRequestView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = FriendRequestSerializer
+    
+    def get(self, request, *args, **kwargs):
+        page_no = int(request.query_params.get("page", 1))
+        base_link = self.request.build_absolute_uri().split("?")[0]
 
-    def get_queryset(self):
-        return FriendRequest.get_recieved_requests(self.request.user)
+        cache_key = f"friend_request_{request.user.user_id}"
+        result = cache.get(cache_key)
+
+        if not result:
+            result = FriendRequest.get_recieved_requests(self.request.user)
+            cache.set(cache_key, result, HR_1)
+
+        next_link = f"{base_link}?page={page_no + 1}"
+        max_page_number = len(result) // PAGE_SIZE
+
+        data = {
+            "next": next_link if page_no < max_page_number else None,
+            "results": result[(page_no - 1) * PAGE_SIZE : page_no * PAGE_SIZE],
+        }
+
+        return Response(data)
+    
+    def post(self, request):
+        serializer = FriendRequestSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        friend_request = serializer.save()
+        
+        new_friend_request = {
+            "req_id": friend_request["req_id"],
+            "id": friend_request["user_to"]["id"],
+            "full_name": friend_request["user_to"]["full_name"],
+            "created_at": friend_request["created_at"].timestamp(),
+            "received_request": False,
+            "sent_request": False,
+            "mutual_friends_count": friend_request["mutual_friends_count"],
+            "mutual_friends_name_list": friend_request["mutual_friends_name_list"],
+        }
+
+        if friend_request["user_to"]["id"] == str(uuid.UUID(request.user.user_id)):
+            new_friend_request["received_request"] = True
+        
+        if friend_request["user_from"]["id"] == str(uuid.UUID(request.user.user_id)):
+            new_friend_request["sent_request"] = True
+
+        cache_key = f"friend_request_{request.user.user_id}"
+        cache_result = cache.get(cache_key)
+
+        if cache_result:
+            cache_ttl = cache.ttl(cache_key)
+            cache_result.insert(0, friend_request)
+            cache.set(cache_key, cache_result, timeout=cache_ttl)
+
+        return Response(new_friend_request, status=status.HTTP_201_CREATED)
 
 
-class SentFriendRequestView(ModelViewSet):
+class SentFriendRequestView(APIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = FriendRequestSerializer
 
-    def get_queryset(self):
-        return FriendRequest.get_sent_requests(self.request.user)
+    def get(self, request):
+        page_no = int(request.query_params.get("page", 1))
+        base_link = self.request.build_absolute_uri().split("?")[0]
+
+        cache_key = f"sent_friend_request_{request.user.user_id}"
+        result = cache.get(cache_key)
+
+        if not result:
+            result = FriendRequest.get_sent_requests(self.request.user)
+            cache.set(cache_key, result, HR_1)
+        
+        next_link = f"{base_link}?page={page_no + 1}"
+        max_page_number = len(result) // PAGE_SIZE
+        print(max_page_number)
+        data = {
+            "next": next_link if page_no < max_page_number else None,
+            "results": result[(page_no - 1) * PAGE_SIZE : page_no * PAGE_SIZE],
+        }
+
+        return Response(data)
 
 
 class FriendRequestActionView(ModelViewSet):
@@ -101,6 +205,7 @@ class FriendRequestActionView(ModelViewSet):
         action = serializer.validated_data["action"]
 
         friend_request = FriendRequest.nodes.get_or_none(req_id=request_id)
+        action_happened = False
 
         if not friend_request:
             raise NotFound("Friend request not found")
@@ -109,16 +214,38 @@ class FriendRequestActionView(ModelViewSet):
             if friend_request.user_to.single().user_id != request.user.user_id:
                 raise NotFound("Friend request not found")
             friend_request.accept()
+            action_happened = True
 
-        if action == "reject":
+        elif action == "reject":
             if (
                 friend_request.user_to == request.user
                 or friend_request.user_from == request.user
             ):
                 raise NotFound("Friend request not found")
             friend_request.reject()
+            action_happened = True
+
+        if action_happened:
+            self.remove_request_from_sent_cache(request_id, request.user.user_id)
+            self.remove_request_from_received_cache(request_id, request.user.user_id)            
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    def remove_request_from_sent_cache(self, request_id, user_id):
+        cache_key = f"sent_friend_request_{user_id}"
+        cache_result = cache.get(cache_key)
+        if cache_result:
+            cache_ttl = cache.ttl(cache_key)
+            cache_result = [req for req in cache_result if req["req_id"] != request_id]
+            cache.set(cache_key, cache_result, timeout=cache_ttl)
+        
+    def remove_request_from_received_cache(self, request_id, user_id):
+        cache_key = f"friend_request_{user_id}"
+        cache_result = cache.get(cache_key)
+        if cache_result:
+            cache_ttl = cache.ttl(cache_key)
+            cache_result = [req for req in cache_result if req["req_id"] != request_id]
+            cache.set(cache_key, cache_result, timeout=cache_ttl)
 
 
 class FriendSuggestionsView(APIView):
@@ -129,12 +256,11 @@ class FriendSuggestionsView(APIView):
         page_number = int(request.query_params.get("page", 1))
 
         max_result_count = 200
-        page_per_result = 10
 
         result = self.get_suggesion_friends_list()
         base_link = self.request.build_absolute_uri().split("?")[0]
         next_link = f"{base_link}?page={page_number + 1}"
-        max_page_number = max_result_count // page_per_result
+        max_page_number = max_result_count // PAGE_SIZE
         
 
         data = {
@@ -153,8 +279,8 @@ class FriendSuggestionsView(APIView):
         if not result:
             result = user.get_friend_suggesion() 
             random.shuffle(result)
-            cache.set(cache_key, result, 60*60*24) # 24 hours
-        return_result = result[(page_number - 1) * 10 : page_number * 10]
+            cache.set(cache_key, result, HR_1*24) # 24 hours
+        return_result = result[(page_number - 1) * PAGE_SIZE : page_number * PAGE_SIZE]
         return return_result
     
     def delete(self, request, pk):
@@ -175,6 +301,6 @@ class FriendSuggestionsView(APIView):
         if ttl:
             cache.set(cache_key, result, ttl)
         else:
-            cache.set(cache_key, result, 60*60*24)
+            cache.set(cache_key, result, HR_1*24)
 
         return Response(status=status.HTTP_204_NO_CONTENT)

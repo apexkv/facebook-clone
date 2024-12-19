@@ -6,9 +6,9 @@ import LoginPage from "./LoginPage";
 import { RootState, store } from "@/data/stores";
 import { usePathname } from "next/navigation";
 import RegisterPage from "./RegisterPage";
-import { apiClientUser } from "@/data/api";
+import { apiClientFriends, apiClientUser } from "@/data/api";
 import { getUserTokens } from "@/data/funcs";
-import { login, logout, setUserData } from "@/data/auth_slise";
+import { login, logout, setUserData, updateRequestCount } from "@/data/auth_slise";
 
 function AuthenticatedContainer({ children }: { children: React.ReactNode }) {
     const authState = useSelector((state: RootState) => state.auth);
@@ -29,6 +29,17 @@ function AuthHandler({ children }: { children: React.ReactNode }) {
     const dispatch = useDispatch();
     const [loading, setLoading] = useState<boolean>(true);
 
+    async function getUserData() {
+        await apiClientFriends
+            .get("/me/")
+            .then((res) => {
+                dispatch(updateRequestCount(res.data.request_count));
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
+
     async function validateToken() {
         setLoading(true);
         const token = getUserTokens();
@@ -40,6 +51,7 @@ function AuthHandler({ children }: { children: React.ReactNode }) {
                     if (newToken) {
                         dispatch(login(newToken));
                         dispatch(setUserData(res.data));
+                        getUserData();
                     }
                 })
                 .catch((err) => {
