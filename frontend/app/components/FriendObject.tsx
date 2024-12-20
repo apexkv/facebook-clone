@@ -126,7 +126,7 @@ function FriendObject({ user, style = "block", ref, removeUser: removeObject, up
                             {user.full_name
                                 .trim()
                                 .split(" ")
-                                .map((name) => name[0].toUpperCase())}
+                                .map((name: string) => name[0].toUpperCase())}
                         </h1>
                     </Link>
                     <div className="py-2 px-4">

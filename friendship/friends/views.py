@@ -50,6 +50,7 @@ class UserView(ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         auth_user = request.user
+        pagination_enabled = request.query_params.get("pagination", "true") == "true"
         user_id = str(kwargs["pk"]).replace("-", "")
         user = User.nodes.get_or_none(user_id=user_id)
 
@@ -60,6 +61,7 @@ class UserView(ModelViewSet):
         base_link = self.request.build_absolute_uri().split("?")[0]
 
         cache_key = f"friend_list_{user_id}"
+        cache.delete(cache_key)
         result = cache.get(cache_key)
 
         if not result:
@@ -74,7 +76,7 @@ class UserView(ModelViewSet):
             "results": result[(page_no - 1) * PAGE_SIZE : page_no * PAGE_SIZE],
         }
 
-        return Response(data)
+        return Response(data if pagination_enabled else result)
 
 
 class MutualFriendsView(ModelViewSet):

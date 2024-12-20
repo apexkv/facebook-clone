@@ -180,10 +180,10 @@ class FeedViewSet(ModelViewSet):
 
         return queryset
 
-    # @method_decorator(cache_page(60 * 1))  # 1 minuites
-    # @method_decorator(vary_on_headers("Authorization"))
-    # def list(self, request, *args, **kwargs):
-    #     return super().list(request, *args, **kwargs)
+    @method_decorator(cache_page(60 * 1))  # 1 minuites
+    @method_decorator(vary_on_headers("Authorization"))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     def get_serializer_context(self):
         context = super(FeedViewSet, self).get_serializer_context()

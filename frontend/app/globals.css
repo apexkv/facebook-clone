@@ -35,3 +35,25 @@
 .comment-section:hover .comment-options-button {
     opacity: 1;
 }
+
+.chat-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-scrollbar::-webkit-scrollbar-track {
+    background: #2d2d2d;
+    border-radius: 4px;
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb {
+    background: #525252;
+    border-radius: 4px;
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #6e6e6e;
+}
+
+.chat-section {
+    max-width: 95%;
+}
