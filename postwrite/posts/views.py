@@ -134,6 +134,10 @@ class FeedViewSet(ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         token = self.request.headers.get("Authorization")
+        
+        two_weeks_ago = timezone.now() - timedelta(weeks=48)
+        comments_count_with_post = 3
+
         try:
             response = requests.get(
                 f"http://friendship:8000/api/friendship/users/{str(user.id)}/friends/?pagination=false",
@@ -146,11 +150,35 @@ class FeedViewSet(ModelViewSet):
         if response.status_code != 200:
             raise APIException("Something went wrong please try again later.")
 
-        user_ids = [friend["id"] for friend in response.json()]
-
-        # two_weeks_ago = timezone.now() - timedelta(weeks=2)
-        two_weeks_ago = timezone.now() - timedelta(weeks=48)
-        comments_count_with_post = 3
+        try:
+            user_ids = [friend["id"] for friend in response.json()]
+        except Exception as e:
+            queryset = (
+                Post.objects.select_related("user")
+                .annotate(
+                    is_liked=Exists(
+                        PostLike.objects.filter(post=OuterRef("pk"), user=user)
+                    ),
+                )
+                .prefetch_related(
+                    Prefetch(
+                        "comment_set",
+                        queryset=Comment.objects.select_related("user")
+                        .annotate(
+                            is_liked=Exists(
+                                CommentLike.objects.filter(
+                                    comment=OuterRef("pk"), user=user
+                                )
+                            )
+                        )
+                        .order_by("-created_at")[:comments_count_with_post],
+                        to_attr="latest_comments",
+                    ),
+                )
+                .filter(created_at__gte=two_weeks_ago)
+                .order_by("?")
+            )
+            return queryset
 
         queryset = (
             Post.objects.select_related("user")
