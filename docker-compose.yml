@@ -123,11 +123,48 @@ services:
         networks:
             - private-network
 
+    chat:
+        build:
+            context: ./chat
+            dockerfile: Dockerfile
+        restart: always
+        env_file:
+            - ./chat/.env
+        ports:
+            - 8040:8000
+        volumes:
+            - ./chat:/app
+            - ./backups:/backups
+        depends_on:
+            - chat-db
+            - rabbitmq
+            - redis-chat
+        networks:
+            - public-network
+            - private-network
+
+    chat-db:
+        image: postgres:17
+        restart: always
+        env_file:
+            - ./chat/.env
+        volumes:
+            - chat-db:/var/lib/postgresql/data
+            - ./backups:/backups
+        networks:
+            - private-network
+
     redis:
         restart: always
         image: redis:7.4.1-alpine
         ports:
             - 6379:6379
+        networks:
+            - private-network
+
+    redis-chat:
+        restart: always
+        image: redis:7.4.1-alpine
         networks:
             - private-network
 
@@ -146,6 +183,7 @@ volumes:
     users-db:
     posts-write-db:
     friendship-db:
+    chat-db:
 
 networks:
     private-network:
