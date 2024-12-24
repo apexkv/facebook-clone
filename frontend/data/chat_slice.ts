@@ -10,117 +10,35 @@ export type MessageType = {
     direction: "received" | "sent";
 }
 
+export type ChatUserType = {
+    id: string;
+    friend: UserType;
+}
+
 export type ChatType = {
-    user: UserType;
+    user: ChatUserType;
     new_messages: number;
     messages: MessageType[];
     is_opened: boolean;
 }
 
 export type ChatListType = {
-    users: UserType[];
+    users: ChatUserType[];
 	chats: ChatType[];
     minimized_chats: ChatType[];
     active_chats: ChatType[];
 };
 
+export type EventType = {
+    type: "friend.online" | "friend.offline" | "friend.typing.start" | "friend.typing.stop";
+    data: any
+}
+
 const initialState: ChatListType = {
     chats: [],
     minimized_chats: [],
     active_chats: [],
-    users: [
-        {
-            id: "sdfs1",
-            full_name: "John Doe",
-            created_at: "2021-10-10",
-            is_friend: true,
-            is_online: true,
-            mutual_friends: 10,
-            mutual_friends_list: [],
-            mutual_friends_name_list: [],
-            received_request: false,
-            sent_request: false,
-            req_id: "sdfssd",
-        },
-        {
-            id: "sdfs2",
-            full_name: "Clair Doe",
-            created_at: "2021-10-10",
-            is_friend: true,
-            is_online: true,
-            mutual_friends: 10,
-            mutual_friends_list: [],
-            mutual_friends_name_list: [],
-            received_request: false,
-            sent_request: false,
-            req_id: "sdfssd",
-        },
-        {
-            id: "sdfs3",
-            full_name: "Ben Doe",
-            created_at: "2021-10-10",
-            is_friend: true,
-            is_online: true,
-            mutual_friends: 10,
-            mutual_friends_list: [],
-            mutual_friends_name_list: [],
-            received_request: false,
-            sent_request: false,
-            req_id: "sdfssd",
-        },
-        {
-            id: "sdfs4",
-            full_name: "Alex Dumpy",
-            created_at: "2021-10-10",
-            is_friend: true,
-            is_online: true,
-            mutual_friends: 10,
-            mutual_friends_list: [],
-            mutual_friends_name_list: [],
-            received_request: false,
-            sent_request: false,
-            req_id: "sdfssd",
-        },
-        {
-            id: "sdfs5",
-            full_name: "Penny Doe",
-            created_at: "2021-10-10",
-            is_friend: true,
-            is_online: true,
-            mutual_friends: 10,
-            mutual_friends_list: [],
-            mutual_friends_name_list: [],
-            received_request: false,
-            sent_request: false,
-            req_id: "sdfssd",
-        },
-        {
-            id: "sdfs6",
-            full_name: "Hailey Dumpy",
-            created_at: "2021-10-10",
-            is_friend: true,
-            is_online: true,
-            mutual_friends: 10,
-            mutual_friends_list: [],
-            mutual_friends_name_list: [],
-            received_request: false,
-            sent_request: false,
-            req_id: "sdfssd",
-        },
-        {
-            id: "sdfs7",
-            full_name: "Nikki Doe",
-            created_at: "2021-10-10",
-            is_friend: true,
-            is_online: true,
-            mutual_friends: 10,
-            mutual_friends_list: [],
-            mutual_friends_name_list: [],
-            received_request: false,
-            sent_request: false,
-            req_id: "sdfssd",
-        },
-    ],
+    users: [],
 };
 
 export const chatSlice = createSlice({
@@ -128,12 +46,6 @@ export const chatSlice = createSlice({
 	initialState,
 	reducers: {
         createNewChat: (state, action: PayloadAction<ChatType>) => {
-            /*
-            add new chat to active chats and chats. when creating new chat, 
-            check if chat already exists and also only can have 3 active chats other 
-            chats will be minimized. and also check if chat already exists in minimized 
-            chats and only can have 3 minimized chats
-            */
             const new_chat = action.payload;
             if(state.active_chats.some((chat) => chat.user.id === new_chat.user.id)){
                 state.active_chats = state.active_chats.map((chat) => {
@@ -167,24 +79,20 @@ export const chatSlice = createSlice({
             if(state.chats.some((chat) => chat.user.id === new_chat.user.id)) return;
             state.chats = [new_chat, ...state.chats]; 
         },
-        closeActiveChat: (state, action: PayloadAction<UserType>) => {
-            // only remove from active chats
+        closeActiveChat: (state, action: PayloadAction<ChatUserType>) => {
             state.active_chats = state.active_chats.filter((chat) => chat.user.id !== action.payload.id);
         },
-        closeMinimizedChat: (state, action: PayloadAction<UserType>) => {
-            // only remove from minimized chats
+        closeMinimizedChat: (state, action: PayloadAction<ChatUserType>) => {
             state.minimized_chats = state.minimized_chats.filter((chat) => chat.user.id !== action.payload.id);
         },
-        addNewUser: (state, action: PayloadAction<UserType>) => {
-            // if user already exists, do nothing
+        addNewUser: (state, action: PayloadAction<ChatUserType>) => {
             if(state.users.some((user) => user.id === action.payload.id)) return;
             state.users = [action.payload, ...state.users];
         },
-        removeUser: (state, action: PayloadAction<UserType>) => {
+        removeUser: (state, action: PayloadAction<ChatUserType>) => {
             state.users = state.users.filter((user) => user.id !== action.payload.id);
         },
-        addMessage: (state, action: PayloadAction<{ user: UserType, message: MessageType }>) => {
-            // add message to chat and if chat is minimized, increase new_messages count and also add msg to active chat
+        addMessage: (state, action: PayloadAction<{ user: ChatUserType, message: MessageType }>) => {
             state.chats = state.chats.map((chat) => {
                 if (chat.user.id === action.payload.user.id) {
                     return {
@@ -214,15 +122,13 @@ export const chatSlice = createSlice({
                 return chat;
             });
         },
-        minimizeActiveChat: (state, action: PayloadAction<UserType>) => {
-            // remove chat from active chats and add to minimized chats
+        minimizeActiveChat: (state, action: PayloadAction<ChatUserType>) => {
             const chat = state.active_chats.find((chat) => chat.user.id === action.payload.id);
             if(!chat) return;
             state.active_chats = state.active_chats.filter((chat) => chat.user.id !== action.payload.id);
             state.minimized_chats = [chat, ...state.minimized_chats];
         },
-        openMinimizedChat: (state, action: PayloadAction<UserType>) => {
-            // remove chat from minimized chats and add to active chats. and update is_opened to true
+        openMinimizedChat: (state, action: PayloadAction<ChatUserType>) => {
             const chat = state.minimized_chats.find((chat) => chat.user.id === action.payload.id);
             if(!chat) return;
             state.minimized_chats = state.minimized_chats.filter((chat) => chat.user.id !== action.payload.id);
@@ -235,7 +141,7 @@ export const chatSlice = createSlice({
                 }
             }
         },
-        toggleActiveChat: (state, action: PayloadAction<UserType>) => {
+        toggleActiveChat: (state, action: PayloadAction<ChatUserType>) => {
             state.active_chats = state.active_chats.map((chat) => {
                 if (chat.user.id === action.payload.id) {
                     return {
@@ -246,9 +152,22 @@ export const chatSlice = createSlice({
                 return chat;
             })
         },
+        changeUserStatusOrAddUser: (state, action: PayloadAction<ChatUserType>) => {
+            const user = action.payload;
+            const is_user_in_users = state.users.filter((u) => u.id === user.id);
 
+            if(is_user_in_users.length > 0){
+                state.users = state.users.filter((u) => u.id !== user.id);
+            }
+            if(user.friend.is_online){
+                state.users.unshift(user);
+            }
+            else{
+                state.users.push(user);
+            }
+        }            
 	},
 });
 
-export const { addMessage, addNewUser, closeActiveChat, closeMinimizedChat, createNewChat, minimizeActiveChat, openMinimizedChat, removeUser, toggleActiveChat } = chatSlice.actions;
+export const { addMessage, addNewUser, closeActiveChat, closeMinimizedChat, createNewChat, minimizeActiveChat, openMinimizedChat, removeUser, toggleActiveChat, changeUserStatusOrAddUser } = chatSlice.actions;
 export default chatSlice.reducer;

@@ -5,6 +5,7 @@ import { TokensType } from '@/types/types';
 const USER_API_URL = 'http://localhost:8010/api/users/';
 const POST_API_URL = 'http://localhost:8020/api/postwrite/';
 const FRIENDS_API_URL = 'http://localhost:8030/api/friendship/';
+const CHAT_API_URL = 'http://localhost:8040/api/chat/';
 
 function isTokenExpired(token: string) {
 	try {
@@ -68,8 +69,16 @@ const apiClientFriends = axios.create({
 	},
 });
 
+const apiClientChat = axios.create({
+	baseURL: CHAT_API_URL,
+	headers: {
+		'Content-Type': 'application/json',
+	},
+});
+
 apiClientUser.interceptors.request.use(apiInterceptor);
 apiClientPost.interceptors.request.use(apiInterceptor);
 apiClientFriends.interceptors.request.use(apiInterceptor);
+apiClientChat.interceptors.request.use(apiInterceptor);
 
-export { apiClientUser, apiClientPost, apiClientFriends };
+export { apiClientUser, apiClientPost, apiClientFriends, apiClientChat };

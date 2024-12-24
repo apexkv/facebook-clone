@@ -5,19 +5,23 @@ import SendIcon from "@mui/icons-material/Send";
 import CloseIcon from "@mui/icons-material/Close";
 import MinimizeIcon from "@mui/icons-material/CloseFullscreen";
 import { RootState } from "@/data/stores";
-import { UserType } from "@/types/types";
+import { ListResponseType } from "@/types/types";
 import {
     addMessage,
+    changeUserStatusOrAddUser,
     ChatType,
+    ChatUserType,
     closeActiveChat,
     createNewChat,
+    EventType,
     MessageType,
     minimizeActiveChat,
     openMinimizedChat,
     toggleActiveChat,
 } from "@/data/chat_slice";
+import { apiClientChat } from "@/data/api";
 
-function UserLine({ friend }: { friend: UserType }) {
+function UserLine({ friend }: { friend: ChatUserType }) {
     const randomColor = Math.floor(Math.random() * 16777215).toString(16);
     const dispatch = useDispatch();
     const chats = useSelector((state: RootState) => state.chat.chats);
@@ -34,14 +38,17 @@ function UserLine({ friend }: { friend: UserType }) {
         >
             <h2
                 style={{ backgroundColor: `#${randomColor}` }}
-                className={`!w-7 !h-7 text-[10px] font-bold flex justify-center items-center rounded-full shadow-md`}
+                className={`relative !w-7 !h-7 text-[10px] font-bold flex justify-center items-center rounded-full shadow-md`}
             >
-                {friend.full_name
+                {friend.friend.full_name
                     .trim()
                     .split(" ")
                     .map((name) => name[0].toUpperCase())}
+                {friend.friend.is_online && (
+                    <span className="w-[10px] h-[10px] bg-green-500 border rounded-full absolute left-[-1px] top-[-1px]" />
+                )}
             </h2>
-            <span className="text-[14px]">{friend.full_name}</span>
+            <span className="text-[14px]">{friend.friend.full_name}</span>
         </li>
     );
 }
@@ -61,7 +68,9 @@ function OnlineFriendsList() {
                 className="px-2 py-1 bg-blue-600 rounded-t-md text-white w-full text-left flex items-center"
             >
                 <div className="w-2 h-2 rounded-full bg-green-400" />
-                <h3 className="px-2 font-semibold">Online Users ({friends.length})</h3>
+                <h3 className="px-2 font-semibold">
+                    Online Users ({friends.filter((chatuser) => chatuser.friend.is_online).length})
+                </h3>
             </button>
             {showFriends && (
                 <ul className="bg-neutral-600 text-white max-h-[370px] overflow-y-auto">
@@ -89,7 +98,7 @@ function MinimizedChat({ chat }: { chat: ChatType }) {
             onClick={openChat}
         >
             <h1 className="text-white font-bold">
-                {chat.user.full_name
+                {chat.user.friend.full_name
                     .trim()
                     .split(" ")
                     .map((name: string) => name[0].toUpperCase())}
@@ -128,7 +137,7 @@ function MsgLine({ msg, ref }: { msg: MessageType; ref?: React.RefObject<HTMLLIE
     );
 }
 
-function OpenedChat({ chat }: { chat: ChatType }) {
+function OpenedChat({ chat, websocket }: { chat: ChatType; websocket: WebSocket | null }) {
     const randomColor = Math.floor(Math.random() * 16777215).toString(16);
     const dispatch = useDispatch();
     const lastMessage = useRef<HTMLLIElement>(null);
@@ -143,10 +152,18 @@ function OpenedChat({ chat }: { chat: ChatType }) {
         dispatch(
             addMessage({
                 user: chat.user,
-                message: { message: newMsq, direction: "sent", user: chat.user, read: true, time: "" },
+                message: { message: newMsq, direction: "sent", user: chat.user.friend, read: true, time: "" },
             })
         );
         setNewMsg("");
+        const data = {
+            type: "chat.message",
+            data: {
+                id: chat.user.friend.id,
+                message: newMsq,
+            },
+        };
+        websocket?.send(JSON.stringify(data));
     }
 
     function minChat() {
@@ -171,12 +188,12 @@ function OpenedChat({ chat }: { chat: ChatType }) {
                         className="w-6 h-6 rounded-full text-[12px] font-bold flex items-center justify-center"
                         style={{ backgroundColor: `#${randomColor}` }}
                     >
-                        {chat.user.full_name
+                        {chat.user.friend.full_name
                             .trim()
                             .split(" ")
                             .map((name: string) => name[0].toUpperCase())}
                     </div>
-                    <h3 className="px-2 font-semibold">{chat.user.full_name}</h3>
+                    <h3 className="px-2 font-semibold">{chat.user.friend.full_name}</h3>
                 </button>
                 <button
                     onClick={minChat}
@@ -205,7 +222,7 @@ function OpenedChat({ chat }: { chat: ChatType }) {
                         <textarea
                             className="w-[85%] bg-neutral-700 rounded-xl px-2 py-1"
                             rows={2}
-                            placeholder={`Send to ${chat.user.full_name}`}
+                            placeholder={`Send to ${chat.user.friend.full_name}`}
                             value={newMsq}
                             onChange={(e) => setNewMsg(e.target.value)}
                             onKeyDown={(e) => {
@@ -224,23 +241,69 @@ function OpenedChat({ chat }: { chat: ChatType }) {
     );
 }
 
-function OpenedChatList() {
+function OpenedChatList({ websocket }: { websocket: WebSocket | null }) {
     const openedChatsList = useSelector((state: RootState) => state.chat.active_chats);
     return (
         <div className="flex flex-row-reverse items-end">
             {openedChatsList.map((chat, index) => (
-                <OpenedChat key={index} chat={chat} />
+                <OpenedChat key={index} chat={chat} websocket={websocket} />
             ))}
         </div>
     );
 }
 
 function ChatComponents() {
+    const auth = useSelector((state: RootState) => state.auth);
+    const dispatch = useDispatch();
+    const [websocket, setWebsocket] = useState<WebSocket | null>(null);
+
+    async function getUsers() {
+        await apiClientChat
+            .get("/users/")
+            .then((res) => {
+                const data = res.data as ListResponseType<ChatUserType>;
+                console.log(data);
+                data.results.forEach((user) => {
+                    dispatch(changeUserStatusOrAddUser(user));
+                });
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
+
+    async function sendMsg() {}
+
+    useEffect(() => {
+        getUsers();
+        const ws = new WebSocket(`ws://localhost:8040/api/ws/chat/?token=${auth.token.access}`);
+        ws.onopen = () => {
+            console.log("connected to websocket");
+            setWebsocket(ws);
+        };
+        ws.onmessage = (e) => {
+            const data = JSON.parse(e.data) as EventType;
+            console.log(data);
+
+            if (data.type === "friend.online" || data.type === "friend.offline") {
+                dispatch(changeUserStatusOrAddUser(data.data));
+            }
+        };
+        ws.onclose = (ev) => {
+            console.log("disconnected from websocket");
+            console.log(ev);
+            setWebsocket(null);
+        };
+        return () => {
+            ws.close();
+        };
+    }, []);
+
     return (
         <div className="fixed bottom-0 right-2 z-50">
             <MinimizedChatList />
             <div className="flex items-end">
-                <OpenedChatList />
+                <OpenedChatList websocket={websocket} />
                 <OnlineFriendsList />
             </div>
         </div>
