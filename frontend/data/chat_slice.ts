@@ -199,10 +199,8 @@ export const chatSlice = createSlice({
                 }
                 return user;
             });
-            // get room index that chat belongs to
             const room_index = state.chat_users.findIndex((user) => user.id === message.room);
             
-            // if room not found add it to chat_users top
             if(room_index === -1){
                 state.chat_users.unshift({
                     id: message.room,
@@ -215,7 +213,6 @@ export const chatSlice = createSlice({
                     messages: [message]
                 })
             }
-            // if room found move it to top
             if(room_index > 0){
                 const room = state.chat_users[room_index];
                 state.chat_users.splice(room_index, 1);

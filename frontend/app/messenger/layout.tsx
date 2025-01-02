@@ -16,8 +16,6 @@ function ChatUser({ user, ref }: { user: ChatUserType; ref?: React.LegacyRef<HTM
 
     useEffect(() => {
         if (user.is_active && chatUserRef.current) {
-            // in this i dont want to scroll if chatUserRef.current in view
-
             if (chatUserRef.current.getBoundingClientRect().top < 0) {
                 chatUserRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
             }

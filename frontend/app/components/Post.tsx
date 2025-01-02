@@ -87,7 +87,6 @@ export function Comment({
     }
 
     function closeOptions(event: MouseEvent) {
-        // Check if the click is outside the options menu
         if (optionsRef.current && !optionsRef.current.contains(event.target as Node)) {
             setIsOptionOpened(false);
         }

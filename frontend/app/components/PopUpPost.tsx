@@ -32,14 +32,13 @@ function PopUpPost({
         getList: getPostList,
         getNextList,
         hasMore,
-    } = useApiGetCommentList(post.id, isFromFeed);
+    } = useApiGetCommentList(post.id);
     const lastCommentRef = useInPageEndFunctionCalling({ loading, hasMore, getNextList });
 
     const initialValues = { content: "" };
 
     function closePopUp() {
         dispatch(closePopUpPost({ postId: post.id }));
-        // Re-enable posts scrolling when popup is closed
         window.document.body.classList.remove("overflow-hidden");
         setShowPopUpPost(false);
     }
@@ -59,7 +58,6 @@ function PopUpPost({
 
     useEffect(() => {
         getPostList();
-        // Prevent posts scrolling when popup is open
         window.document.body.classList.add("overflow-hidden");
         return () => {
             window.document.body.classList.remove("overflow-hidden");

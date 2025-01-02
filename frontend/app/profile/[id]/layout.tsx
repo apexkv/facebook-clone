@@ -69,7 +69,6 @@ function FriendButton({
             });
     }
 
-    // if auth user friend with user
     if (user.is_friend) {
         return (
             <button className="bg-blue-500 px-6 py-2 rounded-md text-white flex items-center">
@@ -81,11 +80,9 @@ function FriendButton({
             </button>
         );
     }
-    // if auth user is user
     if (user.id === authUser.id) {
         return null;
     }
-    // if auth user sent friend request to user
     if (user.sent_request) {
         return (
             <div>
@@ -102,7 +99,6 @@ function FriendButton({
             </div>
         );
     }
-    // if auth user received friend request from user
     if (user.received_request) {
         return (
             <div>
