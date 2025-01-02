@@ -10,6 +10,7 @@ export type UserType = {
 	mutual_friends_name_list: string[];
 	created_at: string;
 	is_online: boolean;
+	bg_color: string;
 };
 
 export type CommentType = {

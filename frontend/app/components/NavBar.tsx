@@ -3,10 +3,10 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import Groups2OutlinedIcon from "@mui/icons-material/Groups2Outlined";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
+import ChatIcon from "@mui/icons-material/ChatBubbleOutline";
 import { usePathname } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "@/data/stores";
-import ChatComponents from "./ChatComponents";
 
 function NavBar() {
     const request_count = useSelector((state: RootState) => state.auth.request_count);
@@ -21,6 +21,12 @@ function NavBar() {
             name: "Friends",
             icon: <Groups2OutlinedIcon className="mr-4 text-2xl" />,
             href: "/friends",
+            active: false,
+        },
+        {
+            name: "Chat",
+            icon: <ChatIcon className="mr-4 text-2xl" />,
+            href: "/messenger",
             active: false,
         },
     ]);
@@ -85,7 +91,6 @@ function NavBar() {
                     </Link>
                 </div>
             </nav>
-            <ChatComponents />
         </>
     );
 }

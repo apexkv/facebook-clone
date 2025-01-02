@@ -3,171 +3,307 @@ import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 export type MessageType = {
+    id: string;
     user: UserType;
-    message: string;
-    time: string;
-    read: boolean;
+    content: string;
+    created_at: string;
+    is_read: boolean;
     direction: "received" | "sent";
+    room: string;
 }
 
 export type ChatUserType = {
     id: string;
     friend: UserType;
-}
-
-export type ChatType = {
-    user: ChatUserType;
-    new_messages: number;
+    last_message_at: string;
+    unread_count: number;
+    is_active: boolean;
+    last_message: string | null;
+    typing: boolean;
     messages: MessageType[];
-    is_opened: boolean;
+    msg_read?: boolean;
 }
-
-export type ChatListType = {
-    users: ChatUserType[];
-	chats: ChatType[];
-    minimized_chats: ChatType[];
-    active_chats: ChatType[];
-};
 
 export type EventType = {
-    type: "friend.online" | "friend.offline" | "friend.typing.start" | "friend.typing.stop";
+    type: "friend.online" | "friend.offline" | "friend.typing.start" | "friend.typing.stop" | "chat.message";
     data: any
 }
 
+export type ChatListType = {
+    chat_users: ChatUserType[];
+	online_users: ChatUserType[];
+};
+
 const initialState: ChatListType = {
-    chats: [],
-    minimized_chats: [],
-    active_chats: [],
-    users: [],
+    chat_users: [],
+    online_users: [],
 };
 
 export const chatSlice = createSlice({
 	name: 'chat',
 	initialState,
 	reducers: {
-        createNewChat: (state, action: PayloadAction<ChatType>) => {
-            const new_chat = action.payload;
-            if(state.active_chats.some((chat) => chat.user.id === new_chat.user.id)){
-                state.active_chats = state.active_chats.map((chat) => {
-                    if (chat.user.id === new_chat.user.id) {
-                        return {
-                            ...chat,
-                            is_opened: true,
-                        };
-                    }
-                    return chat;
-                });
-            }else{
-                const current_chat = state.chats.find((chat) => chat.user.id === new_chat.user.id);
-                if(current_chat){
-                    state.active_chats = [current_chat, ...state.active_chats];
-                }else{
-                    state.active_chats = [new_chat, ...state.active_chats];
+        updateIsActive: (state, action: PayloadAction<string>) => {
+            const pathname = action.payload;
+            state.chat_users = state.chat_users.map((user) => {
+                if (user.id === pathname.split("/")[2]) {
+                    return { ...user, is_active: true };
                 }
-                state.minimized_chats = state.minimized_chats.filter((chat) => chat.user.id !== new_chat.user.id);
-            }
-            if(state.active_chats.length > 3) {
-                const minimized_chat = state.active_chats.pop();
-                if(minimized_chat) {
-                    if(state.minimized_chats.some((chat) => chat.user.id === minimized_chat.user.id)) return;
-                    state.minimized_chats = [minimized_chat, ...state.minimized_chats];
+                return { ...user, is_active: false };
+            })
+            state.online_users = state.online_users.map((user) => {
+                if (user.id === pathname.split("/")[2]) {
+                    return { ...user, is_active: true };
                 }
-            }
-            if(state.minimized_chats.length > 3) {
-                state.minimized_chats.pop();
-            }
-            if(state.chats.some((chat) => chat.user.id === new_chat.user.id)) return;
-            state.chats = [new_chat, ...state.chats]; 
-        },
-        closeActiveChat: (state, action: PayloadAction<ChatUserType>) => {
-            state.active_chats = state.active_chats.filter((chat) => chat.user.id !== action.payload.id);
-        },
-        closeMinimizedChat: (state, action: PayloadAction<ChatUserType>) => {
-            state.minimized_chats = state.minimized_chats.filter((chat) => chat.user.id !== action.payload.id);
-        },
-        addNewUser: (state, action: PayloadAction<ChatUserType>) => {
-            if(state.users.some((user) => user.id === action.payload.id)) return;
-            state.users = [action.payload, ...state.users];
-        },
-        removeUser: (state, action: PayloadAction<ChatUserType>) => {
-            state.users = state.users.filter((user) => user.id !== action.payload.id);
-        },
-        addMessage: (state, action: PayloadAction<{ user: ChatUserType, message: MessageType }>) => {
-            state.chats = state.chats.map((chat) => {
-                if (chat.user.id === action.payload.user.id) {
-                    return {
-                        ...chat,
-                        messages: [...chat.messages, action.payload.message],
-                    };
-                }
-                return chat;
-            });
-            state.active_chats = state.active_chats.map((chat) => {
-                if (chat.user.id === action.payload.user.id) {
-                    return {
-                        ...chat,
-                        messages: [...chat.messages, action.payload.message],
-                    };
-                }
-                return chat;
-            });
-            state.minimized_chats = state.minimized_chats.map((chat) => {
-                if (chat.user.id === action.payload.user.id) {
-                    return {
-                        ...chat,
-                        messages: [...chat.messages, action.payload.message],
-                        new_messages: chat.new_messages + 1,
-                    };
-                }
-                return chat;
-            });
-        },
-        minimizeActiveChat: (state, action: PayloadAction<ChatUserType>) => {
-            const chat = state.active_chats.find((chat) => chat.user.id === action.payload.id);
-            if(!chat) return;
-            state.active_chats = state.active_chats.filter((chat) => chat.user.id !== action.payload.id);
-            state.minimized_chats = [chat, ...state.minimized_chats];
-        },
-        openMinimizedChat: (state, action: PayloadAction<ChatUserType>) => {
-            const chat = state.minimized_chats.find((chat) => chat.user.id === action.payload.id);
-            if(!chat) return;
-            state.minimized_chats = state.minimized_chats.filter((chat) => chat.user.id !== action.payload.id);
-            state.active_chats = [{...chat, is_opened:true}, ...state.active_chats];
-            if(state.active_chats.length > 3) {
-                const minimized_chat = state.active_chats.pop();
-                if(minimized_chat) {
-                    if(state.minimized_chats.some((chat) => chat.user.id === minimized_chat.user.id)) return;
-                    state.minimized_chats = [minimized_chat, ...state.minimized_chats];
-                }
-            }
-        },
-        toggleActiveChat: (state, action: PayloadAction<ChatUserType>) => {
-            state.active_chats = state.active_chats.map((chat) => {
-                if (chat.user.id === action.payload.id) {
-                    return {
-                        ...chat,
-                        is_opened: !chat.is_opened,
-                    };
-                }
-                return chat;
+                return { ...user, is_active: false };
             })
         },
-        changeUserStatusOrAddUser: (state, action: PayloadAction<ChatUserType>) => {
+        addChatUserList: (state, action: PayloadAction<ChatUserType[]>) => {
+            const users = action.payload;
+            users.forEach((user) => {
+                const index = state.chat_users.findIndex((u) => u.id === user.id);
+                const indexOnline = state.online_users.findIndex((u) => u.id === user.id && u.friend.is_online);
+                if (index === -1) {
+                    state.chat_users.push(user);
+                } else {
+                    state.chat_users[index] = user;
+                }
+                if (indexOnline === -1 && user.friend.is_online) {
+                    state.online_users.push(user);
+                }
+            });
+        },
+        addChatOnlineUserList: (state, action: PayloadAction<ChatUserType[]>) => {
+            const users = action.payload;
+            users.forEach((user) => {
+                const index = state.online_users.findIndex((u) => u.id === user.id);
+                if (index === -1) {
+                    state.online_users.push(user);
+                } else {
+                    state.online_users[index] = user;
+                }
+            });
+        },
+        addChatUser: (state, action: PayloadAction<ChatUserType>) => {
+            const new_user = {...action.payload, typing: false}
+            const user_exist = state.chat_users.filter((user)=>user.id === new_user.id)
+            const online_user_exist = state.online_users.filter((user)=>user.id === new_user.id)
+            if(user_exist.length === 0 && online_user_exist.length === 0){
+                const index = state.chat_users.findIndex((user) => user.last_message_at < new_user.last_message_at);
+                if(index === -1){
+                    state.chat_users.unshift(new_user);
+                }else{
+                    state.chat_users.splice(index, 0, new_user);
+                }
+            }
+        },
+        addChatOnlineUser: (state, action: PayloadAction<ChatUserType>) => {
+            const new_user = {...action.payload, typing: false, messages: [] }
+            const user_exist = state.online_users.filter((user)=>user.id === new_user.id)
+            if(user_exist.length === 0){
+                state.online_users.unshift(new_user);
+            }
+            if(user_exist.length > 0){
+                if(!new_user.friend.is_online){
+                    state.online_users = state.online_users.filter((user)=>user.id !== new_user.id)
+                }
+            }
+            state.chat_users = state.chat_users.map((user)=>{
+                if(user.id === new_user.id){
+                    return new_user
+                }
+                return user
+            })
+        },
+        removeChatOnlineUser: (state, action: PayloadAction<ChatUserType>) => {
             const user = action.payload;
-            const is_user_in_users = state.users.filter((u) => u.id === user.id);
-
-            if(is_user_in_users.length > 0){
-                state.users = state.users.filter((u) => u.id !== user.id);
+            state.online_users = state.online_users.filter((u) => u.id !== user.id);
+        },
+        updateChatPosition: (state, action: PayloadAction<ChatUserType>) => {
+            const data = action.payload;
+            const index = state.chat_users.findIndex((u) => u.id === data.id);
+            if (index !== -1) {
+                state.chat_users.splice(index, 1);
             }
-            if(user.friend.is_online){
-                state.users.unshift(user);
+            state.chat_users.unshift(data);         
+        },
+        markMessagesRead: (state, action: PayloadAction<string>) => {
+            const room = action.payload;
+            state.chat_users = state.chat_users.map((user) => {
+                if (user.id === room) {
+                    return { ...user, unread_count: 0 };
+                }
+                return user;
+            });
+            state.online_users = state.online_users.map((user) => {
+                if (user.id === room) {
+                    return { ...user, unread_count: 0 };
+                }
+                return user;
+            });
+        },
+        roomStartTyping: (state, action: PayloadAction<string>) => {
+            const room = action.payload;
+            state.chat_users = state.chat_users.map((user) => {
+                if (user.id === room) {
+                    return { ...user, typing: true };
+                }
+                return user;
+            });
+            state.online_users = state.online_users.map((user) => {
+                if (user.id === room) {
+                    return { ...user, typing: true };
+                }
+                return user;
+            });
+        },
+        roomStopTyping: (state, action: PayloadAction<string>) => {
+            const room = action.payload;
+            state.chat_users = state.chat_users.map((user) => {
+                if (user.id === room) {
+                    return { ...user, typing: false };
+                }
+                return user;
+            });
+            state.online_users = state.online_users.map((user) => {
+                if (user.id === room) {
+                    return { ...user, typing: false };
+                }
+                return user;
+            });
+            
+        },
+        newMessage: (state, action: PayloadAction<MessageType>) => {
+            const message = action.payload
+            state.chat_users = state.chat_users.map((user) => {
+                if (user.id === message.room) {
+                    return { 
+                        ...user, 
+                        last_message: message.content, 
+                        last_message_at: message.created_at, 
+                        unread_count: user.unread_count + 1,
+                        messages: [...user.messages, message]
+                    };
+                }
+                return user;
+            });
+            state.online_users = state.online_users.map((user) => {
+                if (user.id === message.room) {
+                    return { 
+                        ...user, 
+                        last_message: message.content, 
+                        last_message_at: message.created_at, 
+                        unread_count: user.unread_count + 1,
+                        messages: [...user.messages, message]
+                    };
+                }
+                return user;
+            });
+            // get room index that chat belongs to
+            const room_index = state.chat_users.findIndex((user) => user.id === message.room);
+            
+            // if room not found add it to chat_users top
+            if(room_index === -1){
+                state.chat_users.unshift({
+                    id: message.room,
+                    friend: message.user,
+                    last_message_at: message.created_at,
+                    unread_count: 1,
+                    is_active: false,
+                    last_message: message.content,
+                    typing: false,
+                    messages: [message]
+                })
             }
-            else{
-                state.users.push(user);
+            // if room found move it to top
+            if(room_index > 0){
+                const room = state.chat_users[room_index];
+                state.chat_users.splice(room_index, 1);
+                state.chat_users.unshift(room);
             }
-        }            
+        },
+        readAllMessages: (state, action: PayloadAction<string>) => {
+            const room = action.payload;
+            state.chat_users = state.chat_users.map((user) => {
+                if (user.id === room) {
+                    return { 
+                        ...user,
+                        msg_read: true,
+                    };
+                }
+                return user;
+            });            
+            state.online_users = state.online_users.map((user) => {
+                if (user.id === room) {
+                    return { 
+                        ...user,
+                        msg_read: true,
+                    };
+                }
+                return user;
+            });
+        },
+        emptyRoomMessages: (state, action: PayloadAction<string>) => {
+            const room = action.payload;
+            state.chat_users = state.chat_users.map((user) => {
+                if (user.id === room) {
+                    return { 
+                        ...user, 
+                        messages: [],
+                        unread_count: 0
+                    };
+                }
+                return user;
+            });
+            state.online_users = state.online_users.map((user) => {
+                if (user.id === room) {
+                    return { 
+                        ...user, 
+                        messages: [],
+                        unread_count: 0
+                    };
+                }
+                return user;
+            });
+        },
+        resetMsgRead: (state, action: PayloadAction<string>) => {
+            const room = action.payload;
+            state.chat_users = state.chat_users.map((user) => {
+                if (user.id === room) {
+                    return { 
+                        ...user,
+                        msg_read: false,
+                    };
+                }
+                return user;
+            });            
+            state.online_users = state.online_users.map((user) => {
+                if (user.id === room) {
+                    return { 
+                        ...user,
+                        msg_read: false,
+                    };
+                }
+                return user;
+            });
+        }
 	},
 });
 
-export const { addMessage, addNewUser, closeActiveChat, closeMinimizedChat, createNewChat, minimizeActiveChat, openMinimizedChat, removeUser, toggleActiveChat, changeUserStatusOrAddUser } = chatSlice.actions;
+export const { 
+    updateIsActive, 
+    addChatUserList, 
+    addChatUser, 
+    addChatOnlineUser, 
+    addChatOnlineUserList, 
+    removeChatOnlineUser, 
+    updateChatPosition,
+    markMessagesRead,
+    roomStartTyping,
+    roomStopTyping,
+    newMessage,
+    readAllMessages,
+    emptyRoomMessages,
+    resetMsgRead
+} = chatSlice.actions;
 export default chatSlice.reducer;

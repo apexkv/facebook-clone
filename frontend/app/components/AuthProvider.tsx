@@ -9,6 +9,7 @@ import RegisterPage from "./RegisterPage";
 import { apiClientFriends, apiClientUser } from "@/data/api";
 import { getUserTokens } from "@/data/funcs";
 import { login, logout, setUserData, updateRequestCount } from "@/data/auth_slise";
+import ChatProvider from "./ChatProvider";
 
 function AuthenticatedContainer({ children }: { children: React.ReactNode }) {
     const authState = useSelector((state: RootState) => state.auth);
@@ -18,10 +19,10 @@ function AuthenticatedContainer({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <>
+        <ChatProvider>
             <NavBar />
             <div className="!text-white">{children}</div>
-        </>
+        </ChatProvider>
     );
 }
 

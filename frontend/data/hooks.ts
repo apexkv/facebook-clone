@@ -27,7 +27,7 @@ const selectFeedPostList = createSelector(selectPosts, (posts) =>
 
 export function useInPageEndFunctionCalling(data: InPageEndFunctionCallingType) {
 	const observer = useRef<IntersectionObserver | null>();
-	const lastPostRef = useCallback(
+	const lastObjectRef = useCallback(
 		(node: HTMLElement | null) => {
 			if (data.loading) return;
 			if (observer.current) observer.current.disconnect();
@@ -41,7 +41,7 @@ export function useInPageEndFunctionCalling(data: InPageEndFunctionCallingType) 
 		[data.loading, data.hasMore],
 	);
 
-	return lastPostRef;
+	return lastObjectRef;
 }
 
 export function useApiGetPostList(userId?: string) {

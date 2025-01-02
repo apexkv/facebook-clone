@@ -33,12 +33,7 @@ export const friendsSlice = createSlice({
             state.error = action.payload
         },
         removeFriend: (state, action: PayloadAction<string>) => {
-            console.log("Removing friend with ID:", action.payload);
-            console.log("Current friends list:", state.friends);
-
             state.friends = state.friends.filter(friend => friend.id !== action.payload);
-
-            console.log("Updated friends list:", state.friends);
         },
         updateFriend: (state, action: PayloadAction<UserType>) => {
             state.friends = state.friends.map(friend => {

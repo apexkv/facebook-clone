@@ -57,3 +57,45 @@
 .chat-section {
     max-width: 95%;
 }
+
+.b1 {
+    transform: translateY(0);
+    animation: b1anime 0.6s infinite ease alternate 0s;
+}
+
+.b2 {
+    transform: translateY(0);
+    animation: b2anime 0.6s infinite ease alternate 0.3s;
+}
+
+.b3 {
+    transform: translateY(0);
+    animation: b3anime 0.6s infinite ease alternate 0.6s;
+}
+
+@keyframes b1anime {
+    from {
+        transform: translateY(-5px);
+    }
+    to {
+        transform: translateY(0px);
+    }
+}
+
+@keyframes b2anime {
+    from {
+        transform: translateY(-5px);
+    }
+    to {
+        transform: translateY(0px);
+    }
+}
+
+@keyframes b3anime {
+    from {
+        transform: translateY(-5px);
+    }
+    to {
+        transform: translateY(0px);
+    }
+}
