@@ -19,12 +19,6 @@ echo "Starting the server..."
 python manage.py runserver 0.0.0.0:8000 &
 
 echo "Starting RabbitMQ Consumer..."
-python consumers.py &
-
-echo "Starting Celery..."
-celery -A postwrite worker --loglevel=info &
-
-echo "Starting Celery Beat..."
-celery -A postwrite beat --loglevel=info
+python consumers.py
 
 exec "$@"
