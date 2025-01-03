@@ -32,11 +32,15 @@ export type EventType = {
 export type ChatListType = {
     chat_users: ChatUserType[];
 	online_users: ChatUserType[];
+    msg_notifications: MessageType[];
+    unread_count: number;
 };
 
 const initialState: ChatListType = {
     chat_users: [],
     online_users: [],
+    msg_notifications: [],
+    unread_count: 0
 };
 
 export const chatSlice = createSlice({
@@ -218,6 +222,14 @@ export const chatSlice = createSlice({
                 state.chat_users.splice(room_index, 1);
                 state.chat_users.unshift(room);
             }
+            const msg_in_notification = state.msg_notifications.filter((msg)=>msg.id === message.id)
+            if(msg_in_notification.length === 0){
+                state.msg_notifications.unshift(message)
+            }
+            if(state.msg_notifications.length > 5){
+                state.msg_notifications.pop()
+            }
+            
         },
         readAllMessages: (state, action: PayloadAction<string>) => {
             const room = action.payload;
@@ -283,7 +295,15 @@ export const chatSlice = createSlice({
                 }
                 return user;
             });
+        },
+        closeNotification: (state, action: PayloadAction<string>) => {
+            const id = action.payload;
+            state.msg_notifications = state.msg_notifications.filter((msg) => msg.id !== id);
+        },
+        emptyNotifications: (state) => {
+            state.msg_notifications = [];
         }
+        
 	},
 });
 
@@ -301,6 +321,8 @@ export const {
     newMessage,
     readAllMessages,
     emptyRoomMessages,
-    resetMsgRead
+    resetMsgRead,
+    closeNotification,
+    emptyNotifications
 } = chatSlice.actions;
 export default chatSlice.reducer;

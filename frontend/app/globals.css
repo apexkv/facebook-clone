@@ -99,3 +99,12 @@
         transform: translateY(0px);
     }
 }
+
+.btn-click{
+    transition: all 0.3s;
+}
+
+.btn-click:active{
+    transform: scale(0.95);
+}
+

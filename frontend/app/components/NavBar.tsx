@@ -7,9 +7,11 @@ import ChatIcon from "@mui/icons-material/ChatBubbleOutline";
 import { usePathname } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "@/data/stores";
+import MsgNotifications from "./MsgNotifications";
 
 function NavBar() {
     const request_count = useSelector((state: RootState) => state.auth.request_count);
+    const unread_count = useSelector((state: RootState) => state.chat.unread_count);
     const [navList, setNavList] = useState([
         {
             name: "Home",
@@ -77,6 +79,11 @@ function NavBar() {
                                                 {request_count > 99 ? "99+" : request_count}
                                             </span>
                                         ) : null}
+                                        {nav.href === "/messenger" && unread_count > 0 ? (
+                                            <span className="ml-2 bg-red-600 text-[12px] font-semibold p-1 text-white flex justify-center items-center rounded-full">
+                                                {unread_count > 99 ? "99+" : unread_count}
+                                            </span>
+                                        ) : null}
                                     </div>
                                 </Link>
                             </li>
@@ -91,6 +98,7 @@ function NavBar() {
                     </Link>
                 </div>
             </nav>
+            <MsgNotifications />
         </>
     );
 }
