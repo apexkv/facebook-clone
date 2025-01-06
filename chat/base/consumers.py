@@ -8,6 +8,7 @@ from .models import User, Message, Room
 from .serializers import UserSerializer, MessageSerializer, RoomSerializer
 
 
+# Event Types
 EventTypes = Literal["friend.online", "friend.offline", "chat.message", "friend.typing.start", "friend.typing.stop", "chat.read"]
 class ChatMessageType(TypedDict):
     room:str
@@ -15,6 +16,7 @@ class ChatMessageType(TypedDict):
     user: str
 
 
+# Request Class for Serializers
 class Request:
     def __init__(self, user:User):
         self.user = user
@@ -22,28 +24,42 @@ class Request:
 
 class ChatUserConsumer(WebsocketConsumer):
     def connect(self):
+        """
+        Called when the websocket is handshaking as part of the connection process.
+        """
         user:User = self.scope["user"]
 
+        # Check if user is authenticated
         if not user.is_authenticated:
+            # Close the connection if user is not authenticated
             return self.close()
 
+        # Accept the connection
         self.accept()
+        # Set user online
         user.user_online()
+        # Join friendship groups
         self.join_friendship_groups(user)
+        # Notify friends that user is online
         self.notify_friends_user_status(user, "friend.online")
 
     def disconnect(self, close_code):
         user:User = self.scope["user"]
+        # Set user offline
         user.user_offline()
+        # Notify friends that user is offline
         self.notify_friends_user_status(user, "friend.offline")
+        # Leave friendship groups
         self.leave_friendship_groups(user)
 
     def receive(self, text_data):
         data = json.loads(text_data)
 
+        # Get event type and data
         event_type:EventTypes|None = data.get("type", None)
         event_data = data.get("data", None)
 
+        # Check if event type and data exists
         if event_type and event_data:
             if event_type == "chat.message":
                 self.chat_message_send(event_data)
@@ -56,12 +72,14 @@ class ChatUserConsumer(WebsocketConsumer):
             
     
     def sendmessage(self, group_id,type: EventTypes, data:Dict | List):
+        # Send message to group
         async_to_sync(self.channel_layer.group_send)(
             group_id,
             self.data(type, data)
         )
 
     def data(self, event_type:EventTypes , data:List|Dict):
+        # Create data object
         data = {
             "type": event_type,
             "message": {
@@ -72,6 +90,9 @@ class ChatUserConsumer(WebsocketConsumer):
         return data
 
     def join_friendship_groups(self, user:User):
+        """
+        Join friendship groups
+        """
         rooms = Room.objects.filter(users__in=[user])
 
         for room in rooms:
@@ -81,6 +102,9 @@ class ChatUserConsumer(WebsocketConsumer):
             )
     
     def leave_friendship_groups(self, user:User):
+        """
+        Leave friendship groups
+        """
         rooms = Room.objects.filter(users__in=[user])
 
         for room in rooms:
@@ -90,6 +114,10 @@ class ChatUserConsumer(WebsocketConsumer):
             )
 
     def notify_friends_user_status(self, user:User, status:Literal["friend.online", "friend.offline"]):
+        """
+        Notify friends that user is online or offline
+        """
+
         if status == "friend.online":
             rooms = (
                 Room.objects.annotate(
@@ -136,24 +164,36 @@ class ChatUserConsumer(WebsocketConsumer):
             self.sendmessage(str(room.id), status, RoomSerializer(room, context={"request": request}).data)
 
     def friend_online(self, event):
+        """
+        Notify user that friend is online
+        """
         user = self.scope["user"]
         message = event["message"]
         if str(user.id) != str(message["data"]["friend"]["id"]):
             self.send(text_data=json.dumps(message))
             
     def friend_offline(self, event):
+        """
+        Notify user that friend is offline
+        """
         user = self.scope["user"]
         message = event["message"]
         if str(user.id) != str(message["data"]["friend"]["id"]):
             self.send(text_data=json.dumps(message))
 
     def chat_message(self, event):
+        """
+        Notify user that a message has been sent
+        """
         data = event["message"]
         user = self.scope["user"]
         if str(user.id) != str(data["data"]["user"]["id"]):
             self.send(text_data=json.dumps(data))
 
     def chat_message_send(self, event_data:ChatMessageType):
+        """
+        Send message to chat room
+        """
         user = self.scope["user"]
         room_id = event_data.get("room", None)
         content = event_data.get("content", None)
@@ -164,7 +204,15 @@ class ChatUserConsumer(WebsocketConsumer):
         room = Room.objects.filter(id=room_id, users__in=[user])
 
         if not room.exists():
-            return
+            if_room_user = User.objects.filter(id=room_id)
+
+            if not if_room_user.exists():
+                return
+            
+            room = Room()
+            room.save()
+            
+            room.users.add(user, if_room_user.first())
         
         other_user = room.first().users.exclude(id=user.id).first()
 
@@ -180,6 +228,9 @@ class ChatUserConsumer(WebsocketConsumer):
         
     
     def friend_start_typing(self, event):
+        """
+        Send typing start event to chat room
+        """
         room_id = event["room"]
         user = self.scope["user"]
         room = Room.objects.filter(id=room_id)
@@ -191,6 +242,9 @@ class ChatUserConsumer(WebsocketConsumer):
         
 
     def friend_stop_typing(self, event):
+        """
+        Send typing stop event to chat room
+        """
         room_id = event["room"]
         user = self.scope["user"]
         room = Room.objects.filter(id=room_id)
@@ -201,6 +255,9 @@ class ChatUserConsumer(WebsocketConsumer):
         self.sendmessage(room_id, "friend.typing.stop", { "room": room_id, "user": str(user.id) })
 
     def friend_typing_start(self, event):
+        """
+        Notify user that friend is typing
+        """
         user = self.scope["user"]
         message = event["message"]
 
@@ -208,6 +265,9 @@ class ChatUserConsumer(WebsocketConsumer):
             self.send(text_data=json.dumps(message))
 
     def friend_typing_stop(self, event):
+        """
+        Notify user that friend has stopped typing
+        """
         user = self.scope["user"]
         message = event["message"]
 
@@ -215,6 +275,9 @@ class ChatUserConsumer(WebsocketConsumer):
             self.send(text_data=json.dumps(message))
 
     def read_chat(self, event):
+        """
+        Mark messages as read
+        """
         user = self.scope["user"]
         room_id = event["room"]
 
@@ -232,6 +295,9 @@ class ChatUserConsumer(WebsocketConsumer):
         self.sendmessage(room_id, "chat.read", { "room": room_id, "user": str(user.id) })
 
     def chat_read(self, event):
+        """
+        Notify user that messages have been read
+        """
         user = self.scope["user"]
         message = event["message"]
 
