@@ -171,7 +171,7 @@ function page() {
             });
     }
 
-    async function loadMessages(link: string | null = `/messages/${params.room}/`) {
+    async function loadMessages(link: string | null = `/${params.room}/messages/`) {
         if (!link) return;
         setLoading(true);
         await apiClientChat
