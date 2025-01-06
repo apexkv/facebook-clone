@@ -4,6 +4,9 @@ from django.utils import timezone
 
 
 class User(models.Model):
+    """
+    User model to store basic user information
+    """
     id = models.UUIDField(primary_key=True, editable=False, db_index=True)
     full_name = models.CharField(max_length=500, db_index=True)
     is_online = models.BooleanField(default=False, db_index=True)
@@ -29,6 +32,9 @@ class User(models.Model):
 
 
 class Room(models.Model):
+    """
+    Room model to store room information: friends, last message time
+    """
     id = models.UUIDField(primary_key=True, editable=False, db_index=True, default=uuid.uuid4)
     users = models.ManyToManyField(User, related_name="users", db_index=True)
     last_message_at = models.DateTimeField(null=True, db_index=True)
@@ -38,6 +44,9 @@ class Room(models.Model):
 
 
 class Message(models.Model):
+    """
+    Message model to store message information: room, user, content, created_at, is_read
+    """
     id = models.UUIDField(primary_key=True, editable=False, db_index=True, default=uuid.uuid4)
 
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="messages", db_index=True, null=True)
