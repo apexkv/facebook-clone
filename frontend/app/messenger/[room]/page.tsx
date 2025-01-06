@@ -149,7 +149,7 @@ function page() {
         }
     }
 
-    async function loadUser(link: string | null = `/users/${params.room}/user/`) {
+    async function loadUser(link: string | null = `/users/${params.room}/`) {
         if (!link) return;
         setLoading(true);
         await apiClientChat
