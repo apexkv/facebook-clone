@@ -131,22 +131,22 @@ class FeedViewSet(ModelViewSet):
         try:
             user_ids = [friend["id"] for friend in response.json()]
         except Exception as e:
-            tag_popularity = (
-                Tag.objects.annotate(
-                    popularity=Coalesce(Sum(F("post__like_count")), 0)
-                )
-                .values("id", "popularity")
-            )
-            tag_popularity_dict = {tag["id"]: tag["popularity"] for tag in tag_popularity}
+            # tag_popularity = (
+            #     Tag.objects.annotate(
+            #         popularity=Coalesce(Sum(F("post__like_count")), 0)
+            #     )
+            #     .values("id", "popularity")
+            # )
+            # tag_popularity_dict = {tag["id"]: tag["popularity"] for tag in tag_popularity}
             queryset = (
                 Post.objects.select_related("user")
                 .annotate(
                     is_liked=Exists(
                         PostLike.objects.filter(post=OuterRef("pk"), user=user)
                     ),
-                    priority=Coalesce(
-                        Sum(F("tags__id").map(tag_popularity_dict)), 0
-                    ),
+                    # priority=Coalesce(
+                    #     Sum(F("tags__id").map(tag_popularity_dict)), 0
+                    # ),
                 )
                 .prefetch_related(
                     Prefetch(
@@ -164,18 +164,19 @@ class FeedViewSet(ModelViewSet):
                     ),
                 )
                 .filter(created_at__gte=two_weeks_ago)
-                .order_by("-priority", "?") 
+                # .order_by("-priority", "?") 
+                .order_by("?") 
             )
             return queryset
 
         queryset = (
             Post.objects.select_related("user")
             .annotate(
-                tag_priority=Coalesce(
-                    Sum(F('tags__id') * Value(tag_score_map.get(F('tags__id'), 0))),
-                    0,
-                    output_field=FloatField()
-                ),
+                # tag_priority=Coalesce(
+                #     Sum(F('tags__id') * Value(tag_score_map.get(F('tags__id'), 0))),
+                #     0,
+                #     output_field=FloatField()
+                # ),
                 is_liked=Exists(
                     PostLike.objects.filter(post=OuterRef("pk"), user=user)
                 ),
@@ -196,7 +197,8 @@ class FeedViewSet(ModelViewSet):
                 ),
             )
             .filter(user__id__in=user_ids, created_at__gte=two_weeks_ago)
-            .order_by("-tag_priority", "-created_at")
+            # .order_by("-tag_priority", "-created_at")
+            .order_by("-created_at")
         )
 
         return queryset
