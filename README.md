@@ -1,172 +1,246 @@
 # **Facebook-Clone Project**
 
-## **Overview**
+## Overview
 
-This project is a feature-rich, scalable social media platform inspired by Facebook, designed to showcase advanced skills in **microservices architecture**, **machine learning-powered recommendations**, and **high-performance backend engineering**. Built with a modern tech stack, it demonstrates strategic and technical expertise in designing and implementing **scalable, maintainable, and production-ready systems**.
+This Facebook Clone project is a fully functional social media platform built with a microservices architecture. It features user authentication, posts, comments, likes, chat functionality, friend connections, and a modern frontend interface. The project emphasizes scalability, data consistency, and performance.
 
 ---
 
-## **Features**
+#### **High-Level Architecture**
 
-### **1. Core Social Media Functionalities**
+1. **Microservices**
 
--   **Post Management**:
-    -   Users can create posts with rich content support.
-    -   Features for liking posts and adding comments, fostering user interaction.
--   **Comment Management**:
-    -   Nested commenting system with the ability to like individual comments.
+-   For detailed documentation of each microservice, please refer to the following:
+
+    1. [Users Microservice](./user/README.md)
+    2. [Posts Microservice](./posts/README.md)
+    3. [Friends Microservice](./friends/README.md)
+    4. [Chat Microservice](./chat/README.md)
+    5. [Frontend Service](./frontend/README.md)
+
+2. **Frontend**
+
+    - Built with **Next.js**, the frontend offers a seamless user experience with modern UI/UX principles and server-side rendering.
+
+3. **Databases**
+
+    - **PostgreSQL**: Used for structured data in the Chat, Posts, and Users microservices.
+    - **Neo4j**: Used in the Friends microservice to handle graph-based relationships like friendships and friend suggestions.
+
+4. **Messaging and Caching**
+
+    - **RabbitMQ**: Ensures data consistency across microservices by facilitating event-driven communication.
+    - **Redis**:
+        - Used for caching frequently accessed data.
+        - Functions as the event store for channels in the Chat microservice to support real-time communication.
+
+5. **Containerization**
+    - All microservices and the frontend are fully containerized using Docker.
+    - A **Docker Compose** file orchestrates the services, ensuring seamless development and deployment.
+
+---
+
+#### **Folder Structure**
+
+```plaintext
+facebook-clone/
+│
+├── users/              # Users Microservice
+├── posts/              # Posts Microservice
+├── friends/            # Friends Microservice
+├── chat/               # Chat Microservice
+├── frontend/           # Frontend Service
+├── docker-compose.yml  # Docker Compose configuration
+├── README.md           # Main Project Documentation
+```
+
+#### **Key Features**
+
+-   **Authentication and Authorization**:
+
+    -   User registration, login, and session management via the Users microservice.
+
+-   **Posts Management**:
+
+    -   Users can create, edit, delete, and view posts.
+    -   Features like commenting and liking posts are supported.
+
 -   **Friendship Management**:
-    -   Friend requests and friend acceptance/rejection workflows.
-    -   Relationship graph using **Neo4j** for efficient querying of friendships and mutual connections.
 
-### **2. AI-Powered Post Recommendation System**
+    -   Users can send and accept friend requests.
+    -   Friend suggestions are generated using graph-based algorithms in Neo4j.
 
--   **Machine Learning Integration**:
-    -   Implemented a recommendation system that suggests posts to users based on their interaction history and preferences.
-    -   The model leverages **post likes, comments, and user activity** to provide personalized recommendations.
--   **Scheduled Training**:
-    -   Used **Celery** for periodic retraining of the recommendation model with fresh interaction data.
-    -   Ensures recommendations adapt dynamically to changing user behavior.
+-   **Real-time Chat**:
 
-### **3. High-Performance System Design**
+    -   Secure, scalable real-time messaging using Django Channels and Redis.
 
--   **Microservices Architecture**:
-    -   Built multiple independent microservices, each handling a specific domain:
-        -   **User Microservice**: Handles user authentication and profile management.
-        -   **Post Microservice**: Manages posts, comments, and interactions.
-        -   **Friendship Microservice**: Manages friend requests, connections, and graph-based queries.
--   **Caching for Scalability**:
-    -   Implemented **Redis caching** in each microservice to minimize database load and reduce latency for frequently accessed data.
--   **API Gateway**:
-    -   Designed an **NGINX-based API Gateway** for centralized routing and load balancing across microservices.
+-   **Modern Frontend**:
 
-### **4. Frontend**
+    -   Built with Next.js for optimized performance and modern design.
 
--   Built a responsive and intuitive frontend using **Next.js**, delivering a seamless user experience across devices.
+-   **Scalability and Consistency**:
+
+    -   Event-driven communication ensures data consistency across microservices using RabbitMQ.
+    -   Redis caching improves response times for high-demand endpoints.
+
+-   **Containerization**:
+    -   All components are containerized for consistent deployment across different environments.
 
 ---
 
-## **Tech Stack**
+### **System Architecture**
 
-### **Backend**
+![High-Level System Architecture](./images/System-Architecture.png)
 
--   **Django**: Backend framework for all microservices, leveraging its modularity and rapid development capabilities.
--   **PostgreSQL**: Primary database for structured data storage in User and Post microservices.
--   **Neo4j**: Graph database used in the Friendship microservice to efficiently manage and query complex relationships.
+#### **Technologies Used**
 
-### **Frontend**
-
--   **Next.js**: React-based framework for building a fast, server-side rendered user interface.
-
-### **Caching & Queueing**
-
--   **Redis**: Caching layer for improving response times and reducing database load.
--   **Celery**: Task queue for managing asynchronous tasks like periodic model training.
-
-### **API Gateway**
-
--   **NGINX**: Reverse proxy for managing API requests, ensuring secure and efficient communication between microservices.
-
-### **Machine Learning**
-
--   **Scikit-learn**: For training and deploying the recommendation model.
--   **TF-IDF Vectorization**: Used for transforming post content into numerical features.
-<!--
---- -->
-
-## **System Architecture**
-
-<!-- ![System Architecture Diagram](https://via.placeholder.com/800x400?text=Architecture+Diagram) -->
-
-1. **User Microservice**:
-
-    - Handles user registration, login, and profile management.
-    - Provides JWT-based authentication for secure inter-service communication.
-
-2. **Post Microservice**:
-
-    - Manages posts, comments, and likes.
-    - Implements a machine learning pipeline for post recommendations.
-
-3. **Friendship Microservice**:
-
-    - Manages friend requests and user connections.
-    - Uses **Neo4j** to handle relationship graphs efficiently.
-
-4. **API Gateway**:
-    - NGINX routes requests to the appropriate microservice.
-    - Ensures scalability and isolates backend services from direct client access.
+-   **Backend Framework**: Django with Django Rest Framework
+-   **Frontend Framework**: Next.js
+-   **Databases**: PostgreSQL, Neo4j
+-   **Message Broker**: RabbitMQ
+-   **Cache**: Redis
+-   **Containerization**: Docker
+-   **Orchestration**: Docker Compose
 
 ---
 
-## **Key Highlights**
+#### **Advantages of the Architecture**
 
-### **Scalability and Performance**
+1. **Scalability**: Each microservice can be scaled independently to handle growing user demands.
+2. **Modularity**: Clear separation of concerns between different services simplifies maintenance and development.
+3. **Data Consistency**: RabbitMQ ensures event-driven synchronization between services.
+4. **Performance**: Redis caching improves the speed of frequently accessed data.
+5. **Modern Development Practices**: The use of Docker and Docker Compose enables seamless deployment and development.
 
--   Designed with a **microservices-first approach**, ensuring modularity and ease of scaling.
--   Leveraged **Redis caching** and **NGINX load balancing** to handle high traffic with low latency.
+## Getting Started
 
-### **Machine Learning Innovation**
-
--   Developed a robust recommendation system that periodically retrains itself using **user interaction data**.
--   Combined content-based filtering with collaborative filtering techniques to enhance recommendation quality.
-
-### **Graph-Powered Relationships**
-
--   Used **Neo4j** to model friendships and connections, enabling fast and complex queries for features like mutual friends and friend suggestions.
-
-### **DevOps and Deployment**
-
--   Containerized all microservices using **Docker**, ensuring seamless development and deployment workflows.
--   Configured **Celery** workers to handle background tasks and scheduled jobs, ensuring system stability.
-
----
-
-## **Setup Instructions**
-
-### **1. Clone the Repository**
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/apexkv/facebook-clone.git
 cd facebook-clone
 ```
 
-### **2. Set Up Environment Variables**
+### 2. Configure environment variables for each service
 
--   Configure `.env` files for each microservice with the necessary database and service credentials.
+-   These environment variables configure the necessary services like the database, message broker (RabbitMQ), and other service dependencies. Please make sure to fill in the appropriate values based on your environment.
 
-### **3. Start Services**
+#### Users .env
 
--   **Start Docker containers** for all services:
-    ```bash
-    docker-compose up --build
-    ```
--   This will automatically run all the features of the system.
+```plaintext
+# ./users/.env
+
+SECRET_KEY=ILKQ1giDu=
+
+POSTGRES_DB=
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+POSTGRES_HOST=
+POSTGRES_ROOT_PASSWORD=
+POSTGRES_PORT=
+
+RABBITMQ_DEFAULT_USER=
+RABBITMQ_DEFAULT_PASS=
+RABBITMQ_HOST=
+
+CURRENT_QUEUE=users
+QUEUE_LIST=friends,posts,chat
+```
+
+#### Chat .env
+
+```plaintext
+# ./chat/.env
+
+# this secrete key need to be same screte key in Users service secrete key
+SECRET_KEY=ILKQ1giDu=
+
+POSTGRES_DB=
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+POSTGRES_HOST=
+POSTGRES_ROOT_PASSWORD=
+POSTGRES_PORT=
+
+RABBITMQ_DEFAULT_USER=
+RABBITMQ_DEFAULT_PASS=
+RABBITMQ_HOST=
+
+CURRENT_QUEUE=chat
+QUEUE_LIST=friends,posts,users
+
+USERS_SERVICE=http://users:8000
+```
+
+#### Posts .env
+
+```plaintext
+# ./posts/.env
+
+SECRET_KEY=ILKQ1giDu=
+
+POSTGRES_DB=
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+POSTGRES_HOST=
+POSTGRES_ROOT_PASSWORD=
+POSTGRES_PORT=
+
+RABBITMQ_DEFAULT_USER=
+RABBITMQ_DEFAULT_PASS=
+RABBITMQ_HOST=
+
+CURRENT_QUEUE=posts
+QUEUE_LIST=friends,chats,users
+
+USERS_SERVICE=http://users:8000
+```
+
+#### Friends .env
+
+```plaintext
+# ./friends/.env
+
+SECRET_KEY=ILKQ1giDu=
+
+NEO4J_AUTH=
+NEO4j_HOST=
+
+RABBITMQ_DEFAULT_USER=
+RABBITMQ_DEFAULT_PASS=
+RABBITMQ_HOST=
+
+QUEUE_LIST=chat,posts,users
+CURRENT_QUEUE=friends
+
+USERS_SERVICE=http://users:8000
+```
+
+### 3. Start Service Using Docker
+
+```bash
+docker compose up --build
+```
+
+### 4. Now you can explorer the project in these endpoints
+
+```
+http://localhost:3000/ # nextjs frontend
+
+http://localhost:888/api/users/ # users microservice
+
+http://localhost:888/api/posts/ # posts microservice
+
+http://localhost:888/api/friends/ # friends microservice
+
+http://localhost:888/api/chat/ # chat microservice
+```
 
 ---
 
-## **Future Enhancements**
+### References
 
--   **Expand Recommendation System**:
-    -   Incorporate more advanced models like Transformers for post content understanding.
-    -   Introduce real-time recommendation updates.
--   **Analytics Dashboard**:
-    -   Provide insights into user behavior and engagement metrics.
--   **Notification Microservice**:
-    -   Implement a dedicated service for handling user notifications.
+For more information on Docker and Docker Compose, visit their official documentation:
 
----
-
-## **Contributions**
-
-Feel free to fork the repository and submit pull requests. For major changes, please open an issue first to discuss your ideas.
-
----
-
-## **License**
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-This README showcases your **technical skills** and ability to design and implement a complex, scalable, and intelligent system. It also reflects your ability to use advanced technologies effectively, setting you apart from typical 2nd-year software engineering students.
+-   [Docker](https://docs.docker.com/)
+-   [Docker Compose](https://docs.docker.com/compose/)

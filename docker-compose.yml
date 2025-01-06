@@ -87,15 +87,15 @@ services:
     friendship:
         hostname: friends
         build:
-            context: ./friendship
+            context: ./friends
             dockerfile: Dockerfile
         restart: always
         env_file:
-            - ./friendship/.env
+            - ./friends/.env
         ports:
             - 8030:8000
         volumes:
-            - ./friendship:/app
+            - ./friends:/app
         depends_on:
             - friendship-db
             - rabbitmq
@@ -108,7 +108,7 @@ services:
         image: neo4j:5.23.0-community-bullseye
         restart: always
         env_file:
-            - ./friendship/.env
+            - ./friends/.env
         volumes:
             - friendship-db:/data
             - ./backups:/backups
