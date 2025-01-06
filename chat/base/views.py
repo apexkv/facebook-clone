@@ -4,9 +4,35 @@ from rest_framework import status
 from django.db.models import Count, Q, Subquery, OuterRef
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
+from rest_framework import serializers
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from .models import User, Message, Room
 from .serializers import RoomSerializer, MessageSerializer
-          
+
+
+class ChatUserListSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    next = serializers.CharField(allow_null=True)
+    previous = serializers.CharField(allow_null=True)
+    results = RoomSerializer(many=True)
+
+
+class ChatMessageListSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    next = serializers.CharField(allow_null=True)
+    previous = serializers.CharField(allow_null=True)
+    results = MessageSerializer(many=True)
+
+
+filter_param = openapi.Parameter(
+    'filter',
+    openapi.IN_QUERY,
+    description="Filter users. Use 'online' to get only online users.",
+    type=openapi.TYPE_STRING,
+    enum=['online'],
+    required=False
+)
 
 
 class ChatUsersView(ModelViewSet):
@@ -17,6 +43,10 @@ class ChatUsersView(ModelViewSet):
     serializer_class = RoomSerializer
     
     def get_queryset(self):
+
+        if getattr(self, 'swagger_fake_view', False):
+            return Room.objects.none()
+        
         user:User = self.request.user
 
         filter = self.request.query_params.get("filter", None)
@@ -62,6 +92,15 @@ class ChatUsersView(ModelViewSet):
 
         return queryset
     
+    @swagger_auto_schema(
+        operation_description="Retrieve a single chat room for the authenticated user.",
+        security=[{"JWT": []}],
+        responses={
+            200: RoomSerializer,
+            401: "Unauthorized",
+            404: "Not Found",
+        }
+    )
     def retrieve(self, request, pk=None):
         """
         Get a single user
@@ -84,6 +123,18 @@ class ChatUsersView(ModelViewSet):
         
         raise NotFound("User not found")
     
+    @swagger_auto_schema(
+        operation_description="Retrieve a list of chat rooms for the authenticated user.",
+        manual_parameters=[filter_param],  # Add query parameters here
+        responses={
+            200: ChatUserListSerializer,
+            401: "Unauthorized",
+            404: "Not Found",
+        }
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+    
 
 class ChatMessagesView(ModelViewSet):
     """
@@ -96,6 +147,9 @@ class ChatMessagesView(ModelViewSet):
         """
         Get all messages in a room
         """
+        if getattr(self, 'swagger_fake_view', False):
+            return Message.objects.none()
+        
         user = self.request.user
         room_id = self.request.parser_context["kwargs"].get("pk", None)
 
@@ -105,6 +159,25 @@ class ChatMessagesView(ModelViewSet):
         
         raise NotFound("User not found")
     
+    @swagger_auto_schema(
+        operation_description="Retrieve a list of messages for the authenticated user.",
+        responses={
+            200: ChatMessageListSerializer,
+            401: "Unauthorized",
+            404: "Not Found",
+        }
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_description="Mark all messages as read for the authenticated user.",
+        responses={
+            200: "OK",
+            401: "Unauthorized",
+            404: "Not Found",
+        }
+    )
     def create(self, request, pk):
         """
         Mark all messages as read
