@@ -10,6 +10,9 @@ from .serializers import RoomSerializer, MessageSerializer
 
 
 class ChatUsersView(ModelViewSet):
+    """
+    View for listing users
+    """
     permission_classes = [IsAuthenticated]
     serializer_class = RoomSerializer
     
@@ -20,6 +23,7 @@ class ChatUsersView(ModelViewSet):
 
         if filter:
             if filter == "online":
+                # Get all online users
                 queryset = (
                     Room.objects.annotate(
                         unread_count=Count(
@@ -43,6 +47,7 @@ class ChatUsersView(ModelViewSet):
                 )
 
         else:
+            # get all users
             queryset = Room.objects.annotate(
                 unread_count=Count(
                     "messages",
@@ -58,6 +63,9 @@ class ChatUsersView(ModelViewSet):
         return queryset
     
     def retrieve(self, request, pk=None):
+        """
+        Get a single user
+        """
         user = self.request.user
         room = Room.objects.annotate(
             unread_count=Count(
@@ -78,10 +86,16 @@ class ChatUsersView(ModelViewSet):
     
 
 class ChatMessagesView(ModelViewSet):
+    """
+    View for listing and marking them as read
+    """
     permission_classes = [IsAuthenticated]
     serializer_class = MessageSerializer
 
     def get_queryset(self):
+        """
+        Get all messages in a room
+        """
         user = self.request.user
         room_id = self.request.parser_context["kwargs"].get("pk", None)
 
@@ -92,6 +106,9 @@ class ChatMessagesView(ModelViewSet):
         raise NotFound("User not found")
     
     def create(self, request, pk):
+        """
+        Mark all messages as read
+        """
         user = self.request.user
         room_id = pk
         is_mark_read = bool(self.request.query_params.get("mark_read", False))
