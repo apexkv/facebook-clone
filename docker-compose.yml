@@ -53,15 +53,15 @@ services:
     postwrite:
         hostname: posts
         build:
-            context: ./postwrite
+            context: ./posts
             dockerfile: Dockerfile
         restart: always
         env_file:
-            - ./postwrite/.env
+            - ./posts/.env
         ports:
             - 8020:8000
         volumes:
-            - ./postwrite:/app
+            - ./posts:/app
             - ./backups:/backups
         depends_on:
             - posts-write-db
@@ -75,7 +75,7 @@ services:
         image: postgres:17
         restart: always
         env_file:
-            - ./postwrite/.env
+            - ./posts/.env
         volumes:
             - posts-write-db:/var/lib/postgresql/data
             - ./backups:/backups

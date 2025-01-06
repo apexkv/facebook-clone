@@ -107,8 +107,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = f"/static/friendship/"
-MEDIA_URL = f"/media/friendship/"
+STATIC_URL = f"/api/friends/static/"
+MEDIA_URL = f"/api/friends/media/"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
