@@ -12,10 +12,10 @@ import logging
 
 load_dotenv()
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "postwrite.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "chat.settings")
 django.setup()
 
-from posts.models import User
+from base.models import User, Room
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +119,23 @@ class ConsumeHandler:
             info(f"QUEUE - {CURRENT_QUEUE}: User deleted")
         except Exception as e:
             error(f"QUEUE - {CURRENT_QUEUE}: Failed to delete user [{data['id']}]: {e}")
+
+    def friend_created(self, data):
+        try:
+            room = Room()
+            room.save()
+            for usr in data["friends"]:
+                user = User.objects.filter(id=usr["id"]).first()
+                if not user:
+                    user = User(
+                        id=usr["id"],
+                        full_name=usr["full_name"],
+                    )
+                    user.save()
+                room.users.add(user)
+            info(f"QUEUE - {CURRENT_QUEUE}: Friend Room created")
+        except Exception as e:
+            error(f"QUEUE - {CURRENT_QUEUE}: Failed to create friend: {e}")
 
 
 def callback(chnl, method, properties, body):

@@ -21,6 +21,7 @@ services:
             - private-network
 
     users:
+        hostname: users
         build:
             context: ./users
             dockerfile: Dockerfile
@@ -38,6 +39,7 @@ services:
             - private-network
 
     users-db:
+        hostname: users-db
         image: postgres:17
         restart: always
         env_file:
@@ -49,6 +51,7 @@ services:
             - private-network
 
     postwrite:
+        hostname: posts
         build:
             context: ./postwrite
             dockerfile: Dockerfile
@@ -68,6 +71,7 @@ services:
             - private-network
 
     posts-write-db:
+        hostname: posts-db
         image: postgres:17
         restart: always
         env_file:
@@ -81,6 +85,7 @@ services:
             - 5432:5432
 
     friendship:
+        hostname: friends
         build:
             context: ./friendship
             dockerfile: Dockerfile
@@ -99,6 +104,7 @@ services:
             - private-network
 
     friendship-db:
+        hostname: friends-db
         image: neo4j:5.23.0-community-bullseye
         restart: always
         env_file:
@@ -113,6 +119,7 @@ services:
             - 7687:7687
 
     rabbitmq:
+        hostname: rabbitmq
         restart: always
         image: rabbitmq:3-management
         ports:
@@ -124,6 +131,7 @@ services:
             - private-network
 
     chat:
+        hostname: chat
         build:
             context: ./chat
             dockerfile: Dockerfile
@@ -144,6 +152,7 @@ services:
             - private-network
 
     chat-db:
+        hostname: chat-db
         image: postgres:17
         restart: always
         env_file:
@@ -155,6 +164,7 @@ services:
             - private-network
 
     redis:
+        hostname: redis
         restart: always
         image: redis:7.4.1-alpine
         ports:
@@ -163,12 +173,14 @@ services:
             - private-network
 
     redis-chat:
+        hostname: redis-chat
         restart: always
         image: redis:7.4.1-alpine
         networks:
             - private-network
 
     gateway:
+        hostname: apigateway
         image: nginx:stable
         restart: always
         ports:

@@ -36,7 +36,7 @@ function ChatProvider({ children }: { children: React.ReactNode }) {
     const [websocket, setWebsocket] = useState<WebSocket | null>(null);
 
     useEffect(() => {
-        const ws = new WebSocket(`ws://localhost:8040/api/ws/chat/?token=${auth.token.access}`);
+        const ws = new WebSocket(`ws://localhost:888/api/chat/ws/chat/?token=${auth.token.access}`);
         ws.onopen = () => {
             setWebsocket(ws);
         };

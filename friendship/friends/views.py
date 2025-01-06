@@ -12,6 +12,7 @@ from rest_framework.exceptions import NotFound
 from django.core.cache import cache
 from django.utils import timezone
 from .models import FriendRequest, User
+from friendship.producers import publish
 from .serializers import (
     FriendRequestSerializer,
     FriendSuggestionsSerializer,
@@ -217,6 +218,19 @@ class FriendRequestActionView(ModelViewSet):
                 raise NotFound("Friend request not found")
             friend_request.accept()
             action_happened = True
+            data = {
+                "friends": [
+                    {
+                        "id": friend_request.user_from.single().user_id,
+                        "full_name": friend_request.user_from.single().full_name,
+                    },
+                    {
+                        "id": friend_request.user_to.single().user_id,
+                        "full_name": friend_request.user_to.single().full_name,
+                    },
+                ]
+            }
+            publish("friend.created", data, ["chat"])
 
         elif action == "reject":
             if (

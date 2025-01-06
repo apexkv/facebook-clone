@@ -2,10 +2,10 @@ import axios, { InternalAxiosRequestConfig } from 'axios';
 import { getUserTokens, storeUserTokens } from './funcs';
 import { TokensType } from '@/types/types';
 
-const USER_API_URL = 'http://localhost:8010/api/users/';
-const POST_API_URL = 'http://localhost:8020/api/postwrite/';
-const FRIENDS_API_URL = 'http://localhost:8030/api/friendship/';
-const CHAT_API_URL = 'http://localhost:8040/api/chat/';
+const USER_API_URL = 'http://localhost:888/api/users/';
+const POST_API_URL = 'http://localhost:888/api/posts/';
+const FRIENDS_API_URL = 'http://localhost:888/api/friends/';
+const CHAT_API_URL = 'http://localhost:888/api/chat/';
 
 function isTokenExpired(token: string) {
 	try {

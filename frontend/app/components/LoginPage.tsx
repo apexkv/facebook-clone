@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import * as Yup from "yup";
 import { Formik, Form, Field, ErrorMessage, FormikHelpers } from "formik";
@@ -8,7 +8,7 @@ import { apiClientUser } from "@/data/api";
 import { TokensType } from "@/types/types";
 import { useDispatch } from "react-redux";
 import { login } from "@/data/auth_slise";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const loginSchema = Yup.object().shape({
     email: Yup.string().email().required().trim().label("Email"),
@@ -25,6 +25,8 @@ type LoginType = typeof initialValues;
 function LoginPage() {
     const dispatch = useDispatch();
     const router = useRouter();
+    const pathname = usePathname();
+    const [nextUrl, setNextUrl] = React.useState<string>("/");
 
     async function submitLogin(values: LoginType, formikHelpers: FormikHelpers<LoginType>) {
         await apiClientUser
@@ -32,7 +34,7 @@ function LoginPage() {
             .then((res) => {
                 const data = res.data as TokensType;
                 dispatch(login(data));
-                router.replace("/");
+                router.replace(nextUrl);
             })
             .catch((err) => {
                 const errorMsdg = err.response.data;
@@ -41,6 +43,13 @@ function LoginPage() {
                 }
             });
     }
+
+    useEffect(() => {
+        if (pathname !== "/login") {
+            setNextUrl(pathname);
+        }
+        router.replace("/login");
+    }, []);
 
     return (
         <div className="flex flex-col justify-center h-screen items-center bg-slate-200">

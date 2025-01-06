@@ -11,7 +11,7 @@ from posts import views
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="FB Clone Posts-Write API",
+        title="FB Clone Posts API",
         default_version="v1",
         description="This handle post create.",
         terms_of_service="https://www.google.com/policies/terms/",
@@ -24,29 +24,28 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path(
-        "api/postwrite/",
+        "api/posts/swagger/",
         schema_view.with_ui("swagger", cache_timeout=0),
         name="schema-swagger-ui",
     ),
-    path("api/postwrite/admin/", admin.site.urls),
-    path("api/postwrite/", views.PostViewSet.as_view({"post": "create"})),
-    path("api/postwrite/all/", views.PostViewSet.as_view({"get": "list"})),
-    path("api/postwrite/users/", views.UsersViewSet.as_view({"get": "list"})),
-    path("api/postwrite/feed/", views.FeedViewSet.as_view({"get": "list"})),
+    path("api/posts/admin/", admin.site.urls),
+    path("api/posts/", views.PostViewSet.as_view({"post": "create"})),
+    path("api/posts/all/", views.PostViewSet.as_view({"get": "list"})),
+    path("api/posts/feed/", views.FeedViewSet.as_view({"get": "list"})),
     path(
-        "api/postwrite/<uuid:pk>/comments/",
+        "api/posts/<uuid:pk>/comments/",
         views.CommentsViewSet.as_view({"post": "create", "get": "list"}),
     ),
     path(
-        "api/postwrite/users/<uuid:pk>/posts/",
+        "api/posts/users/<uuid:pk>/posts/",
         views.UserPostsViewSet.as_view({"get": "list"}),
     ),
     path(
-        "api/postwrite/<uuid:pk>/like/",
+        "api/posts/<uuid:pk>/like/",
         views.PostLikeViewSet.as_view(),
     ),
     path(
-        "api/postwrite/comments/<uuid:pk>/like/",
+        "api/posts/comments/<uuid:pk>/like/",
         views.CommentLikeViewSet.as_view(),
     ),
 ] + debug_toolbar_urls()

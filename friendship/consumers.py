@@ -132,6 +132,6 @@ def callback(chnl, method, properties, body):
 
 channel.basic_consume(queue=CURRENT_QUEUE, on_message_callback=callback, auto_ack=True)
 
-print("[FRIENDSHIP] Started consuming...")
+print(f"[{CURRENT_QUEUE.upper()}] Started consuming...")
 channel.start_consuming()
 channel.close()

@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import * as Yup from "yup";
 import { Formik, Form, Field, ErrorMessage, FormikHelpers } from "formik";
@@ -8,7 +8,7 @@ import { TokensType } from "@/types/types";
 import { useDispatch } from "react-redux";
 import { login } from "@/data/auth_slise";
 import Hr from "./Hr";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const loginSchema = Yup.object().shape({
     full_name: Yup.string().required().trim().label("Full Name"),
@@ -32,6 +32,8 @@ type RegisterType = typeof initialValues;
 function RegisterPage() {
     const dispatch = useDispatch();
     const router = useRouter();
+    const pathname = usePathname();
+    const [nextUrl, setNextUrl] = React.useState<string>("/");
 
     async function submitRegister(values: RegisterType, formikHelpers: FormikHelpers<RegisterType>) {
         await apiClientUser
@@ -39,7 +41,7 @@ function RegisterPage() {
             .then((res) => {
                 const data = res.data as TokensType;
                 dispatch(login(data));
-                router.replace("/");
+                router.replace(nextUrl);
             })
             .catch((err) => {
                 const errorMsdg = err.response.data;
@@ -48,6 +50,13 @@ function RegisterPage() {
                 }
             });
     }
+
+    useEffect(() => {
+        if (pathname !== "/register") {
+            setNextUrl(pathname);
+        }
+        router.replace("/register");
+    }, []);
 
     return (
         <div className="flex flex-col justify-center h-screen items-center bg-slate-200">

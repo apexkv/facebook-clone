@@ -6,7 +6,7 @@ from friends import views
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="FB Clone Users API",
+        title="FB Clone Friends API",
         default_version="v1",
         description="This handle users authentication.",
         terms_of_service="https://www.google.com/policies/terms/",
@@ -18,34 +18,34 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path(
-        "api/friendship/",
+        "api/friends/swagger/",
         schema_view.with_ui("swagger", cache_timeout=0),
         name="schema-swagger-ui",
     ),
-    path("api/friendship/admin/", admin.site.urls),
-    path("api/friendship/users/", views.UserView.as_view({"get": "list"})),
-    path("api/friendship/me/", views.UserMeView.as_view()),
-    path("api/friendship/suggestions/<str:pk>/", views.FriendSuggestionsView.as_view()),
-    path("api/friendship/suggestions/", views.FriendSuggestionsView.as_view()),
-    path("api/friendship/users/<str:pk>/", views.UserView.as_view({"get": "retrieve"})),
+    path("api/friends/admin/", admin.site.urls),
+    path("api/friends/users/", views.UserView.as_view({"get": "list"})),
+    path("api/friends/me/", views.UserMeView.as_view()),
+    path("api/friends/suggestions/<str:pk>/", views.FriendSuggestionsView.as_view()),
+    path("api/friends/suggestions/", views.FriendSuggestionsView.as_view()),
+    path("api/friends/users/<str:pk>/", views.UserView.as_view({"get": "retrieve"})),
     path(
-        "api/friendship/users/<str:pk>/friends/",
+        "api/friends/users/<str:pk>/friends/",
         views.UserView.as_view({"get": "list"}),
     ),
     path(
-        "api/friendship/users/<str:pk>/friends/mutual/",
+        "api/friends/users/<str:pk>/friends/mutual/",
         views.MutualFriendsView.as_view({"get": "list"}),
     ),
     path(
-        "api/friendship/users/friends/requests/",
+        "api/friends/users/friends/requests/",
         views.FriendRequestView.as_view(),
     ),
     path(
-        "api/friendship/users/friends/requests/action/",
+        "api/friends/users/friends/requests/action/",
         views.FriendRequestActionView.as_view({"post": "create"}),
     ),
     path(
-        "api/friendship/users/friends/requests/sent/",
+        "api/friends/users/friends/requests/sent/",
         views.SentFriendRequestView.as_view(),
     ),
 ]
