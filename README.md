@@ -26,7 +26,7 @@ This Facebook Clone project is a fully functional social media platform built wi
 
 -   For detailed documentation of each microservice, please refer to the following:
 
-    1. [Users Microservice](./user/README.md)
+    1. [Users Microservice](./users/README.md)
     2. [Posts Microservice](./posts/README.md)
     3. [Friends Microservice](./friends/README.md)
     4. [Chat Microservice](./chat/README.md)
