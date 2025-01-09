@@ -21,7 +21,7 @@ from .serializers import (
     UserPostSerializer,
     CommentSerializer,
 )
-from .models import Post, Comment, CommentLike, PostLike, User, Tag
+from .models import Post, Comment, CommentLike, PostLike, User
 
 
 class CommentsViewSet(ModelViewSet):
@@ -104,11 +104,7 @@ class UserPostsViewSet(ModelViewSet):
     def get_queryset(self):
         user_id = self.kwargs.get("pk")
         user = self.request.user
-        comments_count_with_post = 1
-
-        all_tags = [tag.name for tag in Tag.objects.all()]
-
-        
+        comments_count_with_post = 1        
     
         queryset = (
             Post.objects.select_related("user")
@@ -179,32 +175,16 @@ class FeedViewSet(ModelViewSet):
 
         if response.status_code != 200:
             raise APIException("Something went wrong please try again later.")
-        
-        tag_scores = user.user_liked_tags.through.objects.filter(
-            user=user
-        ).values_list('tag_id', 'interaction_count')
-
-        tag_score_map = {tag_id: score for tag_id, score in tag_scores}
 
         try:
             user_ids = [friend["id"] for friend in response.json()]
         except Exception as e:
-            # tag_popularity = (
-            #     Tag.objects.annotate(
-            #         popularity=Coalesce(Sum(F("post__like_count")), 0)
-            #     )
-            #     .values("id", "popularity")
-            # )
-            # tag_popularity_dict = {tag["id"]: tag["popularity"] for tag in tag_popularity}
             queryset = (
                 Post.objects.select_related("user")
                 .annotate(
                     is_liked=Exists(
                         PostLike.objects.filter(post=OuterRef("pk"), user=user)
                     ),
-                    # priority=Coalesce(
-                    #     Sum(F("tags__id").map(tag_popularity_dict)), 0
-                    # ),
                 )
                 .prefetch_related(
                     Prefetch(
@@ -222,7 +202,6 @@ class FeedViewSet(ModelViewSet):
                     ),
                 )
                 .filter(created_at__gte=two_weeks_ago)
-                # .order_by("-priority", "?") 
                 .order_by("?") 
             )
             return queryset
@@ -230,11 +209,6 @@ class FeedViewSet(ModelViewSet):
         queryset = (
             Post.objects.select_related("user")
             .annotate(
-                # tag_priority=Coalesce(
-                #     Sum(F('tags__id') * Value(tag_score_map.get(F('tags__id'), 0))),
-                #     0,
-                #     output_field=FloatField()
-                # ),
                 is_liked=Exists(
                     PostLike.objects.filter(post=OuterRef("pk"), user=user)
                 ),
@@ -255,13 +229,12 @@ class FeedViewSet(ModelViewSet):
                 ),
             )
             .filter(user__id__in=user_ids, created_at__gte=two_weeks_ago)
-            # .order_by("-tag_priority", "-created_at")
             .order_by("-created_at")
         )
 
         return queryset
 
-    @method_decorator(cache_page(60 * 5))  # 1 minuites
+    @method_decorator(cache_page(60 * 5))
     @method_decorator(vary_on_headers("Authorization"))
     @swagger_auto_schema(
         operation_description="List feed posts",
