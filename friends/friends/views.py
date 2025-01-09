@@ -9,14 +9,13 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
+from rest_framework import serializers
 from django.core.cache import cache
-from django.utils import timezone
+from drf_yasg.utils import swagger_auto_schema
 from .models import FriendRequest, User
 from friendship.producers import publish
 from .serializers import (
     FriendRequestSerializer,
-    FriendSuggestionsSerializer,
-    UserSerializer,
     FriendRequestActionSerializer,
 )
 
@@ -25,9 +24,21 @@ HR_1 = 60 * 60
 PAGE_SIZE = 10
 
 
+class UserRequestCountSerializer(serializers.Serializer):
+    request_count = serializers.IntegerField()
+
+
 class UserMeView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_summary="Get user request count",
+        operation_description="Get the number of friend requests received by the user",
+        responses={
+            200: UserRequestCountSerializer,
+            401: "Unauthorized",
+        },
+    )
     def get(self, request):
         user = request.user
         user_data = {
@@ -36,9 +47,41 @@ class UserMeView(APIView):
         return Response(user_data, status=status.HTTP_200_OK)
 
 
+class UserRetrieveSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    full_name = serializers.CharField()
+    is_friend = serializers.BooleanField()
+    sent_request = serializers.BooleanField()
+    received_request = serializers.BooleanField()
+
+
+class UserSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    full_name = serializers.CharField()
+    mutual_friends = serializers.IntegerField()
+    mutual_friends_name_list = serializers.ListField(child=serializers.CharField())
+    is_friend = serializers.BooleanField()
+    sent_request = serializers.BooleanField()
+    received_request = serializers.BooleanField()
+
+
+class UserListSerializer(serializers.Serializer):
+    next = serializers.URLField()
+    results = UserSerializer(many=True)
+
+
 class UserView(ModelViewSet):
     permission_classes = [IsAuthenticated]
-    
+
+    @swagger_auto_schema(
+        operation_summary="Get user details",
+        operation_description="Get the user details by user id",
+        responses={
+            200: UserRetrieveSerializer,
+            401: "Unauthorized",
+            404: "User not found",
+        },
+    )
     def retrieve(self, request, *args, **kwargs):
         friend_id = str(kwargs["pk"]).replace("-", "")
         user = request.user
@@ -49,6 +92,15 @@ class UserView(ModelViewSet):
         
         return Response(result)
 
+    @swagger_auto_schema(
+        operation_summary="Get user friends",
+        operation_description="Get the user friends by user id",
+        responses={
+            200: UserListSerializer,
+            401: "Unauthorized",
+            404: "User not found",
+        },
+    )
     def list(self, request, *args, **kwargs):
         auth_user = request.user
         pagination_enabled = request.query_params.get("pagination", "true") == "true"
@@ -83,6 +135,15 @@ class UserView(ModelViewSet):
 class MutualFriendsView(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_summary="Get mutual friends",
+        operation_description="Get the mutual friends between two users",
+        responses={
+            200: UserListSerializer,
+            401: "Unauthorized",
+            404: "User not found",
+        },
+    )
     def list(self, request, *args, **kwargs):
         auth_user = request.user
         user_id = str(kwargs["pk"]).replace("-", "")
@@ -113,10 +174,34 @@ class MutualFriendsView(ModelViewSet):
 
         return Response(data)
 
+
+class FriendRequestObjectSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    req_id = serializers.UUIDField()
+    full_name = serializers.CharField()
+    created_at = serializers.DateTimeField()
+    sent_request = serializers.BooleanField()
+    received_request = serializers.BooleanField()
+    mutual_friends = serializers.IntegerField()
+    mutual_friends_name_list = serializers.ListField(child=serializers.CharField())
+
+
+class FriendRequestListSerializer(serializers.Serializer):
+    next = serializers.URLField()
+    results = FriendRequestObjectSerializer(many=True)
+
+
 class FriendRequestView(APIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = FriendRequestSerializer
     
+    @swagger_auto_schema(
+        operation_summary="Get friend requests",
+        operation_description="Get the friend requests received by the user",
+        responses={
+            200: FriendRequestListSerializer,
+            401: "Unauthorized",
+        },
+    )
     def get(self, request, *args, **kwargs):
         page_no = int(request.query_params.get("page", 1))
         base_link = self.request.build_absolute_uri().split("?")[0]
@@ -138,6 +223,16 @@ class FriendRequestView(APIView):
 
         return Response(data)
     
+    @swagger_auto_schema(
+        operation_summary="Send friend request",
+        operation_description="Send a friend request to another user",
+        request_body=FriendRequestSerializer,
+        responses={
+            201: FriendRequestObjectSerializer,
+            401: "Unauthorized",
+            400: "Bad Request",
+        },
+    )
     def post(self, request):
         serializer = FriendRequestSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
@@ -174,6 +269,14 @@ class FriendRequestView(APIView):
 class SentFriendRequestView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_summary="Get sent friend requests",
+        operation_description="Get the friend requests sent by the user",
+        responses={
+            200: FriendRequestListSerializer,
+            401: "Unauthorized",
+        },
+    )
     def get(self, request):
         page_no = int(request.query_params.get("page", 1))
         base_link = self.request.build_absolute_uri().split("?")[0]
@@ -198,8 +301,17 @@ class SentFriendRequestView(APIView):
 
 class FriendRequestActionView(ModelViewSet):
     permission_classes = [IsAuthenticated]
-    serializer_class = FriendRequestActionSerializer
 
+    @swagger_auto_schema(
+        operation_summary="Accept or reject friend request",
+        operation_description="Accept or reject a friend request",
+        request_body=FriendRequestActionSerializer,
+        responses={
+            204: "No Content",
+            401: "Unauthorized",
+            404: "Friend request not found",
+        },
+    )
     def create(self, request):
         serializer = FriendRequestActionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -266,8 +378,15 @@ class FriendRequestActionView(ModelViewSet):
 
 class FriendSuggestionsView(APIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = FriendSuggestionsSerializer
 
+    @swagger_auto_schema(
+        operation_summary="Get friend suggestions",
+        operation_description="Get the friend suggestions for the user",
+        responses={
+            200: UserListSerializer,
+            401: "Unauthorized",
+        },
+    )
     def get(self, request):
         page_number = int(request.query_params.get("page", 1))
 
@@ -299,6 +418,15 @@ class FriendSuggestionsView(APIView):
         return_result = result[(page_number - 1) * PAGE_SIZE : page_number * PAGE_SIZE]
         return return_result
     
+    @swagger_auto_schema(
+        operation_summary="Delete friend suggestion",
+        operation_description="Delete a friend suggestion",
+        responses={
+            204: "No Content",
+            401: "Unauthorized",
+            404: "User not found",
+        },
+    )
     def delete(self, request, pk):
         cache_key = f"friend_suggesion_{request.user.user_id}"
         user_id = pk

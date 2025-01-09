@@ -4,17 +4,17 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from friends import views
 
-schema_view = get_schema_view(
-    openapi.Info(
-        title="FB Clone Friends API",
-        default_version="v1",
-        description="This handle users authentication.",
-        terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="kavindu.harshitha97@gmail.com"),
-        license=openapi.License(name="BSD License"),
-    ),
-    public=True,
+
+api_info = openapi.Info(
+    title="FB Clone Friends API",
+    default_version="v1",
+    description="This handle friends related features.",
+    terms_of_service="https://www.google.com/policies/terms/",
+    contact=openapi.Contact(email="kavindu@apexkv.com"),
+    license=openapi.License(name="MIT License", url="../LICENSE"),
 )
+
+schema_view = get_schema_view(api_info, public=True)
 
 urlpatterns = [
     path(
@@ -23,7 +23,6 @@ urlpatterns = [
         name="schema-swagger-ui",
     ),
     path("api/friends/admin/", admin.site.urls),
-    path("api/friends/users/", views.UserView.as_view({"get": "list"})),
     path("api/friends/me/", views.UserMeView.as_view()),
     path("api/friends/suggestions/<str:pk>/", views.FriendSuggestionsView.as_view()),
     path("api/friends/suggestions/", views.FriendSuggestionsView.as_view()),

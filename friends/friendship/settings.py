@@ -146,3 +146,7 @@ CACHES = {
         },
     }
 }
+
+SWAGGER_SETTINGS = {
+    "DEFAULT_INFO": "friendship.urls.api_info",
+}

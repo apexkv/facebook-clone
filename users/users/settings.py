@@ -158,3 +158,7 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,
 }
+
+SWAGGER_SETTINGS = {
+    "DEFAULT_INFO": "users.urls.api_info",
+}

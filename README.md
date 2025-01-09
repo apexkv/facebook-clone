@@ -1,5 +1,19 @@
 # **Facebook-Clone Project**
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [High-Level Architecture](#high-level-architecture)
+3. [Folder Structure](#folder-structure)
+4. [Key Features](#key-features)
+5. [System Architecture](#system-architecture)
+6. [Technologies Used](#technologies-used)
+7. [Advantages of the Architecture](#advantages-of-the-architecture)
+8. [Getting Started](#getting-started)
+9. [References](#references)
+10. [License](#license)
+11. [Finally](#finally)
+
 ## Overview
 
 This Facebook Clone project is a fully functional social media platform built with a microservices architecture. It features user authentication, posts, comments, likes, chat functionality, friend connections, and a modern frontend interface. The project emphasizes scalability, data consistency, and performance.
@@ -62,7 +76,7 @@ facebook-clone/
 
 -   **Posts Management**:
 
-    -   Users can create, edit, delete, and view posts.
+    -   Users can create, delete and view posts.
     -   Features like commenting and liking posts are supported.
 
 -   **Friendship Management**:
@@ -152,7 +166,7 @@ QUEUE_LIST=friends,posts,chat
 ```plaintext
 # ./chat/.env
 
-# this secrete key need to be same screte key in Users service secrete key
+# this secret key need to be same scret key in Users service secret key
 SECRET_KEY=ILKQ1giDu=
 
 POSTGRES_DB=
@@ -244,3 +258,11 @@ For more information on Docker and Docker Compose, visit their official document
 
 -   [Docker](https://docs.docker.com/)
 -   [Docker Compose](https://docs.docker.com/compose/)
+
+# License
+
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
+
+# Finally
+
+Thank you for exploring this Facebook Clone project. If you have any feedback, feel free to create an issue or contribute to the repository. Happy coding! 😊

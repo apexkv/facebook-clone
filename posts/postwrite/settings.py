@@ -162,3 +162,7 @@ CACHES = {
         },
     }
 }
+
+SWAGGER_SETTINGS = {
+    "DEFAULT_INFO": "postwrite.urls.api_info",
+}

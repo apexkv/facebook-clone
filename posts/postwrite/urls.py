@@ -9,18 +9,17 @@ from debug_toolbar.toolbar import debug_toolbar_urls
 
 from posts import views
 
-schema_view = get_schema_view(
-    openapi.Info(
-        title="FB Clone Posts API",
-        default_version="v1",
-        description="This handle post create.",
-        terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="kavindu.harshitha97@gmail.com"),
-        license=openapi.License(name="BSD License"),
-    ),
-    public=True,
-    permission_classes=(permissions.AllowAny,),
+
+api_info = openapi.Info(
+    title="FB Clone Posts API",
+    default_version="v1",
+    description="This handle post related features.",
+    terms_of_service="https://www.google.com/policies/terms/",
+    contact=openapi.Contact(email="kavindu@apexkv.com"),
+    license=openapi.License(name="MIT License", url="../LICENSE"),
 )
+
+schema_view = get_schema_view(api_info, public=True)
 
 urlpatterns = [
     path(
@@ -30,7 +29,6 @@ urlpatterns = [
     ),
     path("api/posts/admin/", admin.site.urls),
     path("api/posts/", views.PostViewSet.as_view({"post": "create"})),
-    path("api/posts/all/", views.PostViewSet.as_view({"get": "list"})),
     path("api/posts/feed/", views.FeedViewSet.as_view({"get": "list"})),
     path(
         "api/posts/<uuid:pk>/comments/",
